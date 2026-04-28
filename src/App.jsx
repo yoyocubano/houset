@@ -166,7 +166,7 @@ const App = () => {
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
         <div className="absolute inset-0 z-0 bg-[#050505]">
-          {/* Native Video Background (Mixkit Luxury Abstract) */}
+          {/* Native Video Background (Local File to avoid CDN blocks) */}
           <div className="absolute inset-0 z-0 opacity-40 mix-blend-screen">
             <video
               autoPlay
@@ -174,7 +174,7 @@ const App = () => {
               muted
               playsInline
               className="w-full h-full object-cover"
-              src="https://assets.mixkit.co/videos/preview/mixkit-abstract-background-of-a-dark-grey-wall-with-light-32776-large.mp4"
+              src="hero-video.mp4"
             ></video>
           </div>
           
