@@ -166,14 +166,16 @@ const App = () => {
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
         <div className="absolute inset-0 z-0 bg-[#050505]">
-          {/* Video Background from Vimeo (Luxury Architecture/Interiors) */}
+          {/* Native Video Background (Mixkit Luxury Abstract) */}
           <div className="absolute inset-0 z-0 opacity-40 mix-blend-screen">
-            <iframe 
-              src="https://player.vimeo.com/video/513511871?background=1&autoplay=1&loop=1&byline=0&title=0&muted=1" 
-              frameBorder="0" 
-              allow="autoplay; fullscreen" 
-              className="absolute top-1/2 left-1/2 w-[100vw] h-[56.25vw] min-h-[100vh] min-w-[177.77vh] -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-            ></iframe>
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-full object-cover"
+              src="https://assets.mixkit.co/videos/preview/mixkit-abstract-background-of-a-dark-grey-wall-with-light-32776-large.mp4"
+            ></video>
           </div>
           
           {/* Static Image Layered on top with blend mode (Double Exposure Effect) */}
