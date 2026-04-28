@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { ChevronRight, Menu, X, ArrowUpRight, Shield, Globe, Compass, Send, CheckCircle2 } from 'lucide-react';
+import { ChevronRight, Menu, X, ArrowUpRight, ShoppingBag, PenTool, CheckCircle, Send, CheckCircle2, ShoppingCart } from 'lucide-react';
 
 const TiltCard = ({ children, className }) => {
   const x = useMotionValue(0);
@@ -70,23 +70,16 @@ const App = () => {
   const handleContactSubmit = async (e) => {
     e.preventDefault();
     setFormStatus('submitting');
-    
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData);
-
     try {
-      // Backend connection to our Node.js server (see backend/server.js)
-      // Fallback to Formspree for GitHub Pages static hosting
       const response = await fetch('https://formspree.io/f/placeholder', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
-      if (response.ok) {
-        setFormStatus('success');
-      } else {
-        setFormStatus('error');
-      }
+      if (response.ok) setFormStatus('success');
+      else setFormStatus('error');
     } catch (err) {
       console.error(err);
       setFormStatus('error');
@@ -108,14 +101,14 @@ const App = () => {
             <div className="w-8 h-8 rounded-full border border-[#D4AF37]/50 flex items-center justify-center group-hover:bg-[#D4AF37]/10 transition-colors">
               <div className="w-3 h-3 bg-[#D4AF37] rounded-full"></div>
             </div>
-            <span className="font-display font-semibold tracking-[0.2em] text-sm uppercase">HOMESETUP</span>
+            <span className="font-display font-semibold tracking-[0.2em] text-sm uppercase">HOMESETUP LUX</span>
           </motion.div>
           
           <div className="hidden md:flex items-center gap-10">
-            {['Servicios', 'Portfolio 3D', 'Contacto'].map((item, i) => (
+            {['Modelo', 'Boutique', 'Contacto'].map((item, i) => (
               <motion.a 
                 key={item}
-                href={`#${item.toLowerCase().replace(' ', '-')}`}
+                href={`#${item.toLowerCase()}`}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
@@ -134,7 +127,7 @@ const App = () => {
             className="hidden md:block"
           >
             <a href="#contacto" className="glass-button px-6 py-2.5 rounded-full text-xs tracking-widest font-medium uppercase hover:bg-white hover:text-black transition-all duration-500 flex items-center gap-2">
-              Empezar
+              Iniciar Proyecto
               <ArrowUpRight size={14} />
             </a>
           </motion.div>
@@ -145,7 +138,7 @@ const App = () => {
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div 
@@ -160,8 +153,8 @@ const App = () => {
               </button>
             </div>
             <div className="flex flex-col gap-8 mt-20 px-6">
-              {['Servicios', 'Portfolio 3D', 'Contacto'].map((item) => (
-                <a key={item} href={`#${item.toLowerCase().replace(' ', '-')}`} onClick={() => setMobileMenuOpen(false)} className="text-4xl font-display font-light text-white/80 hover:text-white transition-colors">
+              {['Modelo', 'Boutique', 'Contacto'].map((item) => (
+                <a key={item} href={`#${item.toLowerCase()}`} onClick={() => setMobileMenuOpen(false)} className="text-4xl font-display font-light text-white/80 hover:text-white transition-colors">
                   {item}
                 </a>
               ))}
@@ -191,34 +184,39 @@ const App = () => {
           >
             <motion.div variants={fadeUp} className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full glass-panel mb-8 border-white/10 bg-white/5">
               <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse"></span>
-              <span className="text-[10px] tracking-[0.3em] font-semibold uppercase text-white/80">Discreet Estate Management</span>
+              <span className="text-[10px] tracking-[0.3em] font-semibold uppercase text-white/80">Online Store & Consulting</span>
             </motion.div>
             
             <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl lg:text-[80px] leading-[1.05] font-display font-medium tracking-tight mb-8">
-              Instala tu hogar en Luxemburgo <br className="hidden md:block"/>
-              <span className="text-gradient-gold italic font-light pr-4">sin estrés</span>.
+              Tu espacio ideal en Luxemburgo. <br className="hidden md:block"/>
+              <span className="text-gradient-gold italic font-light pr-4">Nosotros nos encargamos de todo.</span>
             </motion.h1>
             
             <motion.p variants={fadeUp} className="text-lg md:text-xl text-white/60 font-light max-w-2xl mb-12 leading-relaxed">
-              Coordinamos profesionales, te asesoramos y te recomendamos los mejores productos para que no pierdas tiempo. Exclusividad y control total.
+              Descubre nuestra boutique online con los mejores materiales y mobiliario. Te asesoramos en tu proyecto y coordinamos a los artesanos profesionales más calificados de Luxemburgo para ejecutarlo.
             </motion.p>
             
             <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-5">
-              <a href="#contacto" className="bg-white text-black px-8 py-4 rounded-full font-medium flex items-center justify-center gap-2 hover:bg-[#D4AF37] hover:scale-105 transition-all duration-300">
-                Solicitar Asesoría
-                <ChevronRight size={18} />
+              <a href="#boutique" className="bg-white text-black px-8 py-4 rounded-full font-medium flex items-center justify-center gap-2 hover:bg-[#D4AF37] hover:scale-105 transition-all duration-300">
+                <ShoppingCart size={18} />
+                Explorar Boutique
               </a>
-              <a href="#servicios" className="glass-button px-8 py-4 rounded-full font-medium flex items-center justify-center gap-2">
-                Ver cómo funciona
+              <a href="#modelo" className="glass-button px-8 py-4 rounded-full font-medium flex items-center justify-center gap-2">
+                ¿Cómo funciona?
               </a>
             </motion.div>
           </motion.div>
         </div>
       </section>
 
-      {/* Services Section */}
-      <section id="servicios" className="py-32 relative bg-[#050505]">
+      {/* Model Section (How it works) */}
+      <section id="modelo" className="py-32 relative bg-[#050505]">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <div className="text-center mb-20">
+            <h2 className="text-3xl md:text-5xl font-display font-medium mb-4">Nuestro Modelo Exclusivo</h2>
+            <p className="text-white/50 max-w-2xl mx-auto font-light">Comodidad, legalidad y el más alto nivel de artesanía sin que tengas que levantar un dedo.</p>
+          </div>
+          
           <motion.div 
             initial="hidden"
             whileInView="visible"
@@ -227,43 +225,52 @@ const App = () => {
             className="grid grid-cols-1 md:grid-cols-3 gap-8"
           >
             {[
-              { icon: <Shield size={24} />, title: "Asesoría Personalizada", desc: "Consultoría experta para entender tus necesidades en Luxemburgo. Desde la selección hasta la mudanza." },
-              { icon: <Globe size={24} />, title: "Coordinación", desc: "Gestión integral de proveedores, artesanos y servicios de alto standing." },
-              { icon: <Compass size={24} />, title: "Selección Premium", desc: "Acceso exclusivo a catálogos de mobiliario, domótica y equipamiento premium para tu nueva propiedad." }
+              { icon: <ShoppingBag size={24} />, title: "1. Materiales Premium", desc: "A través de nuestra tienda online, adquieres mobiliario, pinturas y materiales de las mejores tiendas de Luxemburgo (vía afiliación)." },
+              { icon: <PenTool size={24} />, title: "2. Asesoría de Diseño", desc: "Te guiamos en la elección de estilos, colores y distribución espacial para asegurar un resultado estético y funcional." },
+              { icon: <CheckCircle size={24} />, title: "3. Ejecución Delegada", desc: "Nosotros nos encargamos de contratar y coordinar a artesanos locales certificados para que realicen la obra física de manera impecable." }
             ].map((feature, idx) => (
-              <motion.div key={idx} variants={fadeUp} className="glass-panel p-10 rounded-2xl group hover:border-[#D4AF37]/30 transition-colors duration-500">
+              <motion.div key={idx} variants={fadeUp} className="glass-panel p-10 rounded-2xl group hover:border-[#D4AF37]/30 transition-colors duration-500 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-6 text-[100px] font-display font-bold text-white/[0.02] leading-none pointer-events-none transition-all group-hover:text-white/[0.05]">
+                  {idx + 1}
+                </div>
                 <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-8 text-[#D4AF37] group-hover:scale-110 transition-transform duration-500">
                   {feature.icon}
                 </div>
                 <h3 className="text-xl font-display font-medium mb-4">{feature.title}</h3>
-                <p className="text-white/50 leading-relaxed font-light">{feature.desc}</p>
+                <p className="text-white/50 leading-relaxed font-light relative z-10">{feature.desc}</p>
               </motion.div>
             ))}
           </motion.div>
         </div>
       </section>
 
-      {/* 3D Portfolio Section */}
-      <section id="portfolio-3d" className="py-32 relative border-t border-white/5">
+      {/* 3D Boutique Section */}
+      <section id="boutique" className="py-32 relative border-t border-white/5">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-display font-medium mb-6">Curation Premium <span className="text-gradient-gold">3D</span></h2>
-            <p className="text-white/60 max-w-2xl mx-auto font-light">Mueve el ratón sobre las tarjetas para interactuar con la experiencia 3D impulsada por Framer Motion.</p>
+            <h2 className="text-4xl md:text-5xl font-display font-medium mb-6">Boutique <span className="text-gradient-gold">Curation</span></h2>
+            <p className="text-white/60 max-w-2xl mx-auto font-light">Explora nuestra selección de materiales y coordinadores. Mueve el ratón para interactuar con el catálogo 3D.</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10" style={{ perspective: 1000 }}>
             {[
-              { title: "Lounge Collection", type: "Mobiliario", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuBbGeVw-SboWmFk2TrLCPxV7nC57BZi4RrO6ffMT5mtfTOY-2B-Bx7LwKnboC-UQ6Xj_7zulg8YhOh69KX55raPxZ4c2oNnVdNetAQFEAmbwY9gWIgtqlBckHA043Ad9p9sOHzboqqt1GRhIvrvSP6yxYQuiF1c86evsK35uhjKamdhpUnSxV2JYGGwVDrbGOclJO9iJElQUukd7iOOA6dr42RUYpbvMTEdeNyIlWRAksmooQ-T0JQhKH9OgL7-dtYvezoDCzuC6Cc" },
-              { title: "Control Ambiental", type: "Domótica", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuD3iTxLZHgHKI_UwK30MbLhhdnyTAmCvoyXwOLcs-AIbuDa9kxNA5qXmKhPEgZ3wdJXixIf9HbrZQhBZ5OsWy0_duNIiU7aH4XQr69s7AqgjEDZEP2yzJebHIDVBk3thkMVNJxOizohrTIgPk-dDLUi8bsZX-SfCj_gQJs3A4B5cno1RWaSdYpONs0qglELUEUP1gnC5sBmHipqG2Crl38npJSdwEY_abreJcMtpbAQKFeuARhRFe3nep3sFCNblWtGxHH7s7OMdbc" },
-              { title: "Cocinas de Autor", type: "Equipamiento", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuB_55YrPKPZOAKYmV7n71JWG5tbdL7s6FaUf9vpzwN7c5Nc1MLNifCsOOin6Mar1496okToLNRg_vYJcJ5PIDlUO2aRVgY69mUkCgEgMDmC32TKtIPjTC7TEWzDniPbFHKzqpOauAeB5K5NNeXet1DbOuUns9dGwpNRTHQvjwO6VxgPb0GDt33MWPA7GaR8C7LklYk8Rpvbm41BK_noqoWTocqTAFzF9R240kBZ2l8IM2uqGxC9T-vnvIqYj7ImzDxML-x3BIo8t4Y" }
+              { title: "Materiales & Pinturas", type: "Tienda Online", img: "store-materials.png", action: "Comprar Materiales" },
+              { title: "Mobiliario de Lujo", type: "Afiliados", img: "store-furniture.png", action: "Ver Colección" },
+              { title: "Red de Artesanos", type: "Subcontratación", img: "store-craftsmen.png", action: "Agendar Proyecto" }
             ].map((item, idx) => (
-              <TiltCard key={idx} className="h-[450px] w-full cursor-pointer">
+              <TiltCard key={idx} className="h-[480px] w-full cursor-pointer group/card">
                 <div className="glass-panel w-full h-full rounded-2xl overflow-hidden relative group border-white/10 shadow-2xl">
                   <img src={item.img} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity duration-500 scale-105" alt={item.title} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent"></div>
-                  <div className="absolute bottom-0 left-0 p-8 w-full transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent"></div>
+                  
+                  <div className="absolute bottom-0 left-0 p-8 w-full transform translate-y-6 group-hover/card:translate-y-0 transition-transform duration-300 flex flex-col h-full justify-end">
                     <span className="text-[#D4AF37] text-xs tracking-[0.2em] uppercase font-bold mb-2 block">{item.type}</span>
-                    <h3 className="text-2xl font-display font-medium text-white">{item.title}</h3>
+                    <h3 className="text-3xl font-display font-medium text-white mb-6">{item.title}</h3>
+                    
+                    <button className="glass-button px-6 py-3 rounded-full font-medium flex items-center justify-center gap-2 opacity-0 group-hover/card:opacity-100 transition-all duration-500 transform translate-y-4 group-hover/card:translate-y-0">
+                      {item.action}
+                      <ArrowUpRight size={16} />
+                    </button>
                   </div>
                 </div>
               </TiltCard>
@@ -283,7 +290,7 @@ const App = () => {
             transition={{ duration: 0.8 }}
             className="text-4xl md:text-5xl font-display font-medium mb-6"
           >
-            Inicie su proyecto hoy
+            Empieza tu asesoría hoy
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 30 }}
@@ -292,7 +299,7 @@ const App = () => {
             transition={{ duration: 0.8, delay: 0.1 }}
             className="text-white/60 mb-12 max-w-xl mx-auto"
           >
-            Atención prioritaria y confidencial para la configuración de su nueva residencia en Luxemburgo. Déjenos su contacto o hablemos por WhatsApp.
+            Nosotros organizamos los materiales y los artesanos. Tú solo disfrutas el resultado. Déjanos tus datos o hablemos por WhatsApp.
           </motion.p>
           
           <motion.div
@@ -305,31 +312,37 @@ const App = () => {
             {formStatus === 'success' ? (
               <div className="glass-panel p-8 rounded-2xl flex flex-col items-center gap-4 border-[#25D366]/30">
                 <CheckCircle2 size={48} className="text-[#25D366]" />
-                <h3 className="text-xl font-display text-white">¡Mensaje enviado!</h3>
-                <p className="text-white/60">Nos pondremos en contacto a la brevedad.</p>
+                <h3 className="text-xl font-display text-white">¡Solicitud recibida!</h3>
+                <p className="text-white/60">Te contactaremos para organizar la asesoría y las compras necesarias.</p>
               </div>
             ) : (
-              <form onSubmit={handleContactSubmit} className="flex flex-col gap-4 mb-8">
+              <form onSubmit={handleContactSubmit} className="flex flex-col gap-4 mb-8 text-left">
                 <input 
                   type="text" 
                   name="name" 
-                  placeholder="Su Nombre" 
+                  placeholder="Tu Nombre Completo" 
                   required 
                   className="w-full px-6 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-[#D4AF37] transition-colors"
                 />
                 <input 
                   type="email" 
                   name="email" 
-                  placeholder="Su Correo Electrónico" 
+                  placeholder="Tu Correo Electrónico" 
                   required 
                   className="w-full px-6 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-[#D4AF37] transition-colors"
                 />
+                <select name="service" className="w-full px-6 py-4 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-[#D4AF37] transition-colors appearance-none">
+                  <option value="" className="bg-[#121212]">¿Qué necesitas?</option>
+                  <option value="materials" className="bg-[#121212]">Comprar Materiales / Mobiliario</option>
+                  <option value="consulting" className="bg-[#121212]">Asesoría de Proyecto Completa</option>
+                  <option value="craftsmen" className="bg-[#121212]">Necesito que coordinen artesanos</option>
+                </select>
                 <button 
                   type="submit" 
                   disabled={formStatus === 'submitting'}
-                  className="bg-white text-black px-8 py-4 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-[#D4AF37] transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)] disabled:opacity-50"
+                  className="bg-white text-black px-8 py-4 mt-2 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-[#D4AF37] transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)] disabled:opacity-50"
                 >
-                  {formStatus === 'submitting' ? 'Enviando...' : 'Enviar Consulta'}
+                  {formStatus === 'submitting' ? 'Enviando...' : 'Solicitar Asesoría'}
                   <Send size={18} />
                 </button>
               </form>
@@ -337,7 +350,7 @@ const App = () => {
 
             <div className="flex items-center gap-4 my-8">
               <div className="flex-1 h-[1px] bg-white/10"></div>
-              <span className="text-white/40 text-sm">O</span>
+              <span className="text-white/40 text-sm">O VÍA DIRECTA</span>
               <div className="flex-1 h-[1px] bg-white/10"></div>
             </div>
 
@@ -353,6 +366,10 @@ const App = () => {
         </div>
       </section>
 
+      {/* Footer */}
+      <footer className="py-8 text-center text-white/30 text-sm border-t border-white/5">
+        <p>© {new Date().getFullYear()} HomeSetup Luxembourg. Consultoría y Boutique Online.</p>
+      </footer>
     </div>
   );
 };
