@@ -165,17 +165,32 @@ const App = () => {
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0 bg-[#050505]">
+          {/* Video Background from Vimeo (Luxury Architecture/Interiors) */}
+          <div className="absolute inset-0 z-0 opacity-40 mix-blend-screen">
+            <iframe 
+              src="https://player.vimeo.com/video/513511871?background=1&autoplay=1&loop=1&byline=0&title=0&muted=1" 
+              frameBorder="0" 
+              allow="autoplay; fullscreen" 
+              className="absolute top-1/2 left-1/2 w-[100vw] h-[56.25vw] min-h-[100vh] min-w-[177.77vh] -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+            ></iframe>
+          </div>
+          
+          {/* Static Image Layered on top with blend mode (Double Exposure Effect) */}
           <img 
             src="hero-bg.png" 
             alt="Premium Architecture" 
-            className="w-full h-full object-cover opacity-50 scale-105 transform hover:scale-100 transition-transform duration-[20s] ease-out" 
+            className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay scale-105 transform hover:scale-100 transition-transform duration-[20s] ease-out z-10" 
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/60 via-[#050505]/40 to-[#050505] z-10"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.05),transparent_70%)] z-10"></div>
+          
+          {/* Dark Filter Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/80 via-[#050505]/60 to-[#050505] z-20 pointer-events-none"></div>
+          
+          {/* Golden Glow */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.08),transparent_70%)] z-20 pointer-events-none"></div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-20 w-full">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-30 w-full">
           <motion.div 
             variants={staggerContainer}
             initial="hidden"
