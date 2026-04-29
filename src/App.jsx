@@ -198,8 +198,17 @@ const App = () => {
           />
           
           {/* REAL 3D WebGL Assembling Architecture */}
-          <div className="absolute inset-0 z-0 opacity-80 pointer-events-none">
-            <Canvas shadows camera={{ position: [5, 4, 8], fov: 45 }}>
+          <div className="absolute inset-0 z-0 opacity-80 pointer-events-none" style={{ width: '100vw', height: '100vh' }}>
+            <Canvas 
+              shadows 
+              camera={{ position: [5, 4, 8], fov: 45 }}
+              gl={{ antialias: true, alpha: true, powerPreference: 'default', preserveDrawingBuffer: true }}
+              dpr={[1, 2]}
+              style={{ width: '100%', height: '100%', pointerEvents: 'none' }}
+              onCreated={({ gl }) => {
+                gl.setClearColor(0x000000, 0); // Transparent background
+              }}
+            >
               <ambientLight intensity={0.2} />
               <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
               <pointLight position={[-10, -10, -10]} intensity={0.5} />
