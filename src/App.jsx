@@ -166,30 +166,82 @@ const App = () => {
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
         <div className="absolute inset-0 z-0 bg-[#050505]">
-          {/* Native Video Background (Local File to avoid CDN blocks) */}
-          <div className="absolute inset-0 z-0 opacity-40 mix-blend-screen">
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-full h-full object-cover"
-              src="hero-video.mp4"
-            ></video>
+          {/* Native Code-Based Cinematic Gradient Background */}
+          <motion.div 
+            animate={{
+              backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
+            }}
+            transition={{
+              duration: 20,
+              ease: "linear",
+              repeat: Infinity
+            }}
+            className="absolute inset-0 z-0 opacity-40 mix-blend-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#D4AF37]/10 via-[#050505] to-[#1a1a1a] bg-[length:200%_200%]"
+          />
+          
+          {/* Assembling 8K Architecture Blueprint (Infinite Resolution) */}
+          <div className="absolute inset-0 z-0 flex items-center justify-center opacity-30 mix-blend-screen pointer-events-none transform scale-150">
+            <svg viewBox="0 0 800 600" className="w-full h-full max-w-[1200px]" stroke="#D4AF37" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round">
+              <motion.g
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 4, ease: "easeInOut", delay: 0.5 }}
+              >
+                {/* Foundation & Floor */}
+                <path d="M 100 450 L 700 450 L 650 500 L 150 500 Z" />
+                <path d="M 100 450 L 150 400 L 650 400 L 700 450" />
+                
+                {/* Main Structure Walls */}
+                <path d="M 200 400 L 200 200 L 600 200 L 600 400" />
+                <path d="M 250 400 L 250 150 L 550 150 L 550 400" strokeWidth="0.5" strokeDasharray="4 4" />
+                
+                {/* Roof Assembly */}
+                <motion.path 
+                  initial={{ pathLength: 0, y: -50 }}
+                  animate={{ pathLength: 1, y: 0 }}
+                  transition={{ duration: 3, ease: "easeOut", delay: 2 }}
+                  d="M 150 200 L 400 50 L 650 200 Z" strokeWidth="2" 
+                />
+                <motion.path 
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ duration: 2, delay: 2.5 }}
+                  d="M 200 200 L 400 80 L 600 200" 
+                />
+
+                {/* Luxury Windows / Glass panels */}
+                <path d="M 250 350 L 250 220 L 350 220 L 350 350 Z" />
+                <path d="M 450 350 L 450 220 L 550 220 L 550 350 Z" />
+                
+                {/* Internal framework / Grid */}
+                <g strokeWidth="0.2" opacity="0.5">
+                  <path d="M 300 220 L 300 350" />
+                  <path d="M 250 285 L 350 285" />
+                  <path d="M 500 220 L 500 350" />
+                  <path d="M 450 285 L 550 285" />
+                </g>
+
+                {/* Doorway */}
+                <path d="M 370 400 L 370 280 L 430 280 L 430 400" strokeWidth="1.5" />
+                
+                {/* Architectural measurements / Accents */}
+                <path d="M 180 400 L 180 200" strokeWidth="0.3" strokeDasharray="2 2" />
+                <path d="M 170 400 L 190 400" strokeWidth="0.3" />
+                <path d="M 170 200 L 190 200" strokeWidth="0.3" />
+                <text x="150" y="300" fill="#D4AF37" fontSize="12" style={{fontFamily: 'monospace'}} opacity="0.6" transform="rotate(-90 150 300)">3.20m</text>
+              </motion.g>
+            </svg>
           </div>
           
           {/* Static Image Layered on top with blend mode (Double Exposure Effect) */}
           <img 
             src="hero-bg.png" 
             alt="Premium Architecture" 
-            className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay scale-105 transform hover:scale-100 transition-transform duration-[20s] ease-out z-10" 
+            className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay scale-105 transform hover:scale-100 transition-transform duration-[20s] ease-out z-10" 
           />
           
           {/* Dark Filter Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/80 via-[#050505]/60 to-[#050505] z-20 pointer-events-none"></div>
-          
-          {/* Golden Glow */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.08),transparent_70%)] z-20 pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/90 via-[#050505]/70 to-[#050505] z-20 pointer-events-none"></div>
         </div>
 
         <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-30 w-full">
