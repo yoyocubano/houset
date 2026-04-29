@@ -1,6 +1,104 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { Environment, Float, PresentationControls, ContactShadows } from '@react-three/drei';
+import { motion as motion3d } from 'framer-motion-3d';
 import { ChevronRight, Menu, X, ArrowUpRight, ShoppingBag, PenTool, CheckCircle, Send, CheckCircle2, ShoppingCart } from 'lucide-react';
+
+const LuxuryHouse3D = () => {
+  const groupRef = useRef();
+
+  // Slow automatic rotation
+  useFrame((state) => {
+    if (groupRef.current) {
+      groupRef.current.rotation.y = state.clock.elapsedTime * 0.1;
+    }
+  });
+
+  const goldMaterial = { color: "#D4AF37", metalness: 0.8, roughness: 0.2 };
+  const glassMaterial = { color: "#ffffff", transmission: 0.9, opacity: 0.5, transparent: true, roughness: 0.1, ior: 1.5 };
+  const darkStoneMaterial = { color: "#111111", roughness: 0.9, metalness: 0.1 };
+
+  return (
+    <group ref={groupRef} position={[0, -1, 0]}>
+      {/* Foundation */}
+      <motion3d.mesh
+        initial={{ y: -5, opacity: 0, scale: 0 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        transition={{ duration: 2, ease: "easeOut" }}
+        position={[0, 0, 0]}
+        castShadow
+        receiveShadow
+      >
+        <boxGeometry args={[6, 0.2, 4]} />
+        <meshPhysicalMaterial {...darkStoneMaterial} />
+      </motion3d.mesh>
+
+      {/* Gold Pillars */}
+      {[
+        [-2.8, 1, -1.8], [2.8, 1, -1.8], [-2.8, 1, 1.8], [2.8, 1, 1.8],
+        [-1, 1, -1.8], [1, 1, -1.8]
+      ].map((pos, i) => (
+        <motion3d.mesh
+          key={`pillar-${i}`}
+          initial={{ y: -5, opacity: 0 }}
+          animate={{ y: pos[1], opacity: 1 }}
+          transition={{ duration: 1.5, delay: 0.5 + i * 0.1, ease: "backOut" }}
+          position={pos}
+          castShadow
+        >
+          <cylinderGeometry args={[0.05, 0.05, 2]} />
+          <meshPhysicalMaterial {...goldMaterial} />
+        </motion3d.mesh>
+      ))}
+
+      {/* Glass Walls */}
+      <motion3d.mesh
+        initial={{ opacity: 0, scaleY: 0 }}
+        animate={{ opacity: 1, scaleY: 1 }}
+        transition={{ duration: 2, delay: 1.5 }}
+        position={[0, 1, 1.8]}
+      >
+        <boxGeometry args={[5.6, 2, 0.05]} />
+        <meshPhysicalMaterial {...glassMaterial} />
+      </motion3d.mesh>
+
+      <motion3d.mesh
+        initial={{ opacity: 0, scaleY: 0 }}
+        animate={{ opacity: 1, scaleY: 1 }}
+        transition={{ duration: 2, delay: 1.7 }}
+        position={[0, 1, -1.8]}
+      >
+        <boxGeometry args={[5.6, 2, 0.05]} />
+        <meshPhysicalMaterial {...glassMaterial} />
+      </motion3d.mesh>
+
+      {/* Roof Slab */}
+      <motion3d.mesh
+        initial={{ y: 5, opacity: 0, rotateX: 0.2 }}
+        animate={{ y: 2.1, opacity: 1, rotateX: 0 }}
+        transition={{ duration: 2.5, delay: 2, type: "spring", bounce: 0.2 }}
+        position={[0, 2.1, 0]}
+        castShadow
+        receiveShadow
+      >
+        <boxGeometry args={[6.5, 0.2, 4.5]} />
+        <meshPhysicalMaterial {...darkStoneMaterial} />
+      </motion3d.mesh>
+      
+      {/* Interior glowing accent */}
+      <motion3d.mesh
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ duration: 3, delay: 3 }}
+        position={[0, 1, 0]}
+      >
+        <boxGeometry args={[2, 1.8, 1]} />
+        <meshPhysicalMaterial color="#050505" emissive="#D4AF37" emissiveIntensity={0.5} />
+      </motion3d.mesh>
+    </group>
+  );
+};
 
 const TiltCard = ({ children, className }) => {
   const x = useMotionValue(0);
@@ -70,20 +168,8 @@ const App = () => {
   const handleContactSubmit = async (e) => {
     e.preventDefault();
     setFormStatus('submitting');
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
-    try {
-      const response = await fetch('https://formspree.io/f/placeholder', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      if (response.ok) setFormStatus('success');
-      else setFormStatus('error');
-    } catch (err) {
-      console.error(err);
-      setFormStatus('error');
-    }
+    // Simulation
+    setTimeout(() => setFormStatus('success'), 1500);
   };
 
   return (
@@ -138,120 +224,37 @@ const App = () => {
         </div>
       </nav>
 
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-0 z-50 bg-[#050505] p-6 flex flex-col"
-          >
-            <div className="flex justify-end">
-              <button onClick={() => setMobileMenuOpen(false)} className="text-white p-2">
-                <X size={28} />
-              </button>
-            </div>
-            <div className="flex flex-col gap-8 mt-20 px-6">
-              {['Modelo', 'Boutique', 'Contacto'].map((item) => (
-                <a key={item} href={`#${item.toLowerCase()}`} onClick={() => setMobileMenuOpen(false)} className="text-4xl font-display font-light text-white/80 hover:text-white transition-colors">
-                  {item}
-                </a>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
         <div className="absolute inset-0 z-0 bg-[#050505]">
           {/* Native Code-Based Cinematic Gradient Background */}
           <motion.div 
-            animate={{
-              backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
-            }}
-            transition={{
-              duration: 20,
-              ease: "linear",
-              repeat: Infinity
-            }}
+            animate={{ backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'] }}
+            transition={{ duration: 20, ease: "linear", repeat: Infinity }}
             className="absolute inset-0 z-0 opacity-40 mix-blend-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#D4AF37]/10 via-[#050505] to-[#1a1a1a] bg-[length:200%_200%]"
           />
           
-          {/* Assembling 8K Architecture Blueprint (Infinite Resolution) */}
-          <div className="absolute inset-0 z-0 flex items-center justify-center opacity-60 mix-blend-screen pointer-events-none transform scale-150">
-            <motion.svg 
-              viewBox="0 0 800 600" 
-              className="w-full h-full max-w-[1200px]" 
-              stroke="#D4AF37" 
-              strokeWidth="2" 
-              fill="none" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-              initial="hidden"
-              animate="visible"
-              variants={{
-                hidden: { opacity: 0 },
-                visible: {
-                  opacity: 1,
-                  transition: { staggerChildren: 0.2, delayChildren: 0.5 }
-                }
-              }}
-            >
-              {[
-                "M 100 450 L 700 450 L 650 500 L 150 500 Z", // Foundation
-                "M 100 450 L 150 400 L 650 400 L 700 450", // Floor
-                "M 200 400 L 200 200 L 600 200 L 600 400", // Main Walls
-                "M 150 200 L 400 50 L 650 200 Z", // Roof
-                "M 200 200 L 400 80 L 600 200", // Roof internal
-                "M 250 350 L 250 220 L 350 220 L 350 350 Z", // Window 1
-                "M 450 350 L 450 220 L 550 220 L 550 350 Z", // Window 2
-                "M 370 400 L 370 280 L 430 280 L 430 400", // Doorway
-                "M 300 220 L 300 350", // Grid 1
-                "M 250 285 L 350 285", // Grid 2
-                "M 500 220 L 500 350", // Grid 3
-                "M 450 285 L 550 285", // Grid 4
-              ].map((pathData, index) => (
-                <motion.path 
-                  key={index}
-                  d={pathData}
-                  variants={{
-                    hidden: { pathLength: 0, opacity: 0 },
-                    visible: { 
-                      pathLength: 1, 
-                      opacity: 1,
-                      transition: { duration: 2, ease: "easeInOut" }
-                    }
-                  }}
-                />
-              ))}
-              
-              {/* Accents */}
-              <motion.path d="M 250 400 L 250 150 L 550 150 L 550 400" strokeWidth="0.5" strokeDasharray="4 4" 
-                variants={{ hidden: { pathLength: 0, opacity: 0 }, visible: { pathLength: 1, opacity: 0.5, transition: { duration: 3 } } }}
-              />
-              <motion.path d="M 180 400 L 180 200" strokeWidth="0.5" strokeDasharray="2 2"
-                variants={{ hidden: { pathLength: 0, opacity: 0 }, visible: { pathLength: 1, opacity: 0.5, transition: { duration: 1.5 } } }}
-              />
-              
-              <motion.text 
-                x="150" y="300" 
-                fill="#D4AF37" fontSize="16" 
-                style={{fontFamily: 'monospace'}} 
-                transform="rotate(-90 150 300)"
-                variants={{ hidden: { opacity: 0 }, visible: { opacity: 0.8, transition: { delay: 3, duration: 1 } } }}
-              >
-                3.20m
-              </motion.text>
-            </motion.svg>
+          {/* REAL 3D WebGL Assembling Architecture */}
+          <div className="absolute inset-0 z-0 opacity-80 pointer-events-none">
+            <Canvas shadows camera={{ position: [5, 4, 8], fov: 45 }}>
+              <ambientLight intensity={0.2} />
+              <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
+              <pointLight position={[-10, -10, -10]} intensity={0.5} />
+              <PresentationControls global config={{ mass: 2, tension: 500 }} snap={{ mass: 4, tension: 1500 }} rotation={[0, 0.3, 0]} polar={[-Math.PI / 3, Math.PI / 3]} azimuth={[-Math.PI / 1.4, Math.PI / 2]}>
+                <Float speed={1.5} rotationIntensity={0.5} floatIntensity={1}>
+                  <LuxuryHouse3D />
+                </Float>
+              </PresentationControls>
+              <ContactShadows position={[0, -1.5, 0]} opacity={0.4} scale={20} blur={2} far={4} />
+              <Environment preset="city" />
+            </Canvas>
           </div>
           
           {/* Static Image Layered on top with blend mode (Double Exposure Effect) */}
           <img 
             src="hero-bg.png" 
             alt="Premium Architecture" 
-            className="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay scale-105 transform hover:scale-100 transition-transform duration-[20s] ease-out z-10" 
+            className="absolute inset-0 w-full h-full object-cover opacity-10 mix-blend-overlay scale-105 transform hover:scale-100 transition-transform duration-[20s] ease-out z-10" 
           />
           
           {/* Dark Filter Overlay */}
@@ -265,18 +268,18 @@ const App = () => {
             animate="visible"
             className="max-w-4xl"
           >
-            <motion.div variants={fadeUp} className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full glass-panel mb-8 border-white/10 bg-white/5">
+            <motion.div variants={fadeUp} className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full glass-panel mb-8 border-white/10 bg-white/5 backdrop-blur-md">
               <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse"></span>
-              <span className="text-[10px] tracking-[0.3em] font-semibold uppercase text-white/80">Online Store & Consulting</span>
+              <span className="text-[10px] tracking-[0.3em] font-semibold uppercase text-white/80">Premium WebGL Architecture</span>
             </motion.div>
             
             <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl lg:text-[80px] leading-[1.05] font-display font-medium tracking-tight mb-8">
               Tu espacio ideal en Luxemburgo. <br className="hidden md:block"/>
-              <span className="text-gradient-gold italic font-light pr-4">Nosotros nos encargamos de todo.</span>
+              <span className="text-gradient-gold italic font-light pr-4">Diseño ensamblado en 8K.</span>
             </motion.h1>
             
             <motion.p variants={fadeUp} className="text-lg md:text-xl text-white/60 font-light max-w-2xl mb-12 leading-relaxed">
-              Descubre nuestra boutique online con los mejores materiales y mobiliario. Te asesoramos en tu proyecto y coordinamos a los artesanos profesionales más calificados de Luxemburgo para ejecutarlo.
+              Descubre nuestra boutique online con los mejores materiales. Te asesoramos en tu proyecto y coordinamos a los artesanos más calificados para construir tu visión.
             </motion.p>
             
             <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-5">
@@ -332,7 +335,7 @@ const App = () => {
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="text-center mb-20">
             <h2 className="text-4xl md:text-5xl font-display font-medium mb-6">Boutique <span className="text-gradient-gold">Curation</span></h2>
-            <p className="text-white/60 max-w-2xl mx-auto font-light">Explora nuestra selección de materiales y coordinadores. Mueve el ratón para interactuar con el catálogo 3D.</p>
+            <p className="text-white/60 max-w-2xl mx-auto font-light">Explora nuestra selección de materiales y coordinadores. Mueve el ratón para interactuar con el catálogo.</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10" style={{ perspective: 1000 }}>
