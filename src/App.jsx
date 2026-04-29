@@ -1,13 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Environment, Float, PresentationControls, ContactShadows } from '@react-three/drei';
+import { Environment, Float, PresentationControls, ContactShadows, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { ChevronRight, Menu, X, ArrowUpRight, ShoppingBag, PenTool, CheckCircle, Send, CheckCircle2, ShoppingCart } from 'lucide-react';
 
-const LuxuryHouse3D = () => {
+const Image3DCard = () => {
   const groupRef = useRef();
   
+  // Load the AI-generated texture
+  const texture = useTexture(import.meta.env.BASE_URL + 'luxury_house_texture.png');
+  texture.colorSpace = THREE.SRGBColorSpace;
+
   // Entry animation logic
   useFrame((state, delta) => {
     if (groupRef.current) {
@@ -20,44 +24,21 @@ const LuxuryHouse3D = () => {
     }
   });
 
-  const goldMaterial = new THREE.MeshPhysicalMaterial({ color: "#D4AF37", metalness: 0.9, roughness: 0.1, clearcoat: 1 });
-  const glassMaterial = new THREE.MeshPhysicalMaterial({ color: "#ffffff", transmission: 0.95, opacity: 1, transparent: true, roughness: 0.05, ior: 1.5, thickness: 0.5 });
-  const darkStoneMaterial = new THREE.MeshPhysicalMaterial({ color: "#111111", roughness: 0.9, metalness: 0.2 });
-  const glowMaterial = new THREE.MeshPhysicalMaterial({ color: "#050505", emissive: "#D4AF37", emissiveIntensity: 2 });
-
   return (
     <group ref={groupRef} position={[0, -5, 0]}>
-      {/* Foundation */}
-      <mesh position={[0, 0, 0]} castShadow receiveShadow material={darkStoneMaterial}>
-        <boxGeometry args={[6, 0.2, 4]} />
-      </mesh>
-
-      {/* Gold Pillars */}
-      {[
-        [-2.8, 1, -1.8], [2.8, 1, -1.8], [-2.8, 1, 1.8], [2.8, 1, 1.8],
-        [-1, 1, -1.8], [1, 1, -1.8]
-      ].map((pos, i) => (
-        <mesh key={`pillar-${i}`} position={pos} castShadow material={goldMaterial}>
-          <cylinderGeometry args={[0.05, 0.05, 2]} />
-        </mesh>
-      ))}
-
-      {/* Glass Walls */}
-      <mesh position={[0, 1, 1.8]} material={glassMaterial}>
-        <boxGeometry args={[5.6, 2, 0.05]} />
-      </mesh>
-      <mesh position={[0, 1, -1.8]} material={glassMaterial}>
-        <boxGeometry args={[5.6, 2, 0.05]} />
-      </mesh>
-
-      {/* Roof Slab */}
-      <mesh position={[0, 2.1, 0]} castShadow receiveShadow material={darkStoneMaterial}>
-        <boxGeometry args={[6.5, 0.2, 4.5]} />
-      </mesh>
-      
-      {/* Interior glowing accent */}
-      <mesh position={[0, 1, 0]} material={glowMaterial}>
-        <boxGeometry args={[2, 1.8, 1]} />
+      {/* Floating 3D image card */}
+      <mesh castShadow receiveShadow>
+        {/* We use a thin box to give the image card some 3D volume */}
+        <boxGeometry args={[7, 7, 0.1]} />
+        {/* Material array: [right, left, top, bottom, front, back] */}
+        <meshPhysicalMaterial attach="material-0" color="#D4AF37" metalness={0.8} roughness={0.2} />
+        <meshPhysicalMaterial attach="material-1" color="#D4AF37" metalness={0.8} roughness={0.2} />
+        <meshPhysicalMaterial attach="material-2" color="#D4AF37" metalness={0.8} roughness={0.2} />
+        <meshPhysicalMaterial attach="material-3" color="#D4AF37" metalness={0.8} roughness={0.2} />
+        {/* Front face with the AI texture */}
+        <meshPhysicalMaterial attach="material-4" map={texture} metalness={0.1} roughness={0.3} clearcoat={1} clearcoatRoughness={0.1} />
+        {/* Back face with a dark metallic look */}
+        <meshPhysicalMaterial attach="material-5" color="#050505" metalness={0.9} roughness={0.1} />
       </mesh>
     </group>
   );
@@ -213,8 +194,10 @@ const App = () => {
               <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
               <pointLight position={[-10, -10, -10]} intensity={0.5} />
               <PresentationControls global config={{ mass: 2, tension: 500 }} snap={{ mass: 4, tension: 1500 }} rotation={[0, 0.3, 0]} polar={[-Math.PI / 3, Math.PI / 3]} azimuth={[-Math.PI / 1.4, Math.PI / 2]}>
-                <Float speed={1.5} rotationIntensity={0.5} floatIntensity={1}>
-                  <LuxuryHouse3D />
+                <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.5}>
+                  <Suspense fallback={null}>
+                    <Image3DCard />
+                  </Suspense>
                 </Float>
               </PresentationControls>
               <ContactShadows position={[0, -1.5, 0]} opacity={0.4} scale={20} blur={2} far={4} />
