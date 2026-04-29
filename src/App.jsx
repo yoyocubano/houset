@@ -1,101 +1,64 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Float, PresentationControls, ContactShadows } from '@react-three/drei';
-import { motion as motion3d } from 'framer-motion-3d';
+import * as THREE from 'three';
 import { ChevronRight, Menu, X, ArrowUpRight, ShoppingBag, PenTool, CheckCircle, Send, CheckCircle2, ShoppingCart } from 'lucide-react';
 
 const LuxuryHouse3D = () => {
   const groupRef = useRef();
-
-  // Slow automatic rotation
-  useFrame((state) => {
+  
+  // Entry animation logic
+  useFrame((state, delta) => {
     if (groupRef.current) {
-      groupRef.current.rotation.y = state.clock.elapsedTime * 0.1;
+      // Slow rotation
+      groupRef.current.rotation.y += delta * 0.1;
+      // Gentle rise up effect
+      if (groupRef.current.position.y < 0) {
+        groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, 0, delta * 1.5);
+      }
     }
   });
 
-  const goldMaterial = { color: "#D4AF37", metalness: 0.8, roughness: 0.2 };
-  const glassMaterial = { color: "#ffffff", transmission: 0.9, opacity: 0.5, transparent: true, roughness: 0.1, ior: 1.5 };
-  const darkStoneMaterial = { color: "#111111", roughness: 0.9, metalness: 0.1 };
+  const goldMaterial = new THREE.MeshPhysicalMaterial({ color: "#D4AF37", metalness: 0.9, roughness: 0.1, clearcoat: 1 });
+  const glassMaterial = new THREE.MeshPhysicalMaterial({ color: "#ffffff", transmission: 0.95, opacity: 1, transparent: true, roughness: 0.05, ior: 1.5, thickness: 0.5 });
+  const darkStoneMaterial = new THREE.MeshPhysicalMaterial({ color: "#111111", roughness: 0.9, metalness: 0.2 });
+  const glowMaterial = new THREE.MeshPhysicalMaterial({ color: "#050505", emissive: "#D4AF37", emissiveIntensity: 2 });
 
   return (
-    <group ref={groupRef} position={[0, -1, 0]}>
+    <group ref={groupRef} position={[0, -5, 0]}>
       {/* Foundation */}
-      <motion3d.mesh
-        initial={{ y: -5, opacity: 0, scale: 0 }}
-        animate={{ y: 0, opacity: 1, scale: 1 }}
-        transition={{ duration: 2, ease: "easeOut" }}
-        position={[0, 0, 0]}
-        castShadow
-        receiveShadow
-      >
+      <mesh position={[0, 0, 0]} castShadow receiveShadow material={darkStoneMaterial}>
         <boxGeometry args={[6, 0.2, 4]} />
-        <meshPhysicalMaterial {...darkStoneMaterial} />
-      </motion3d.mesh>
+      </mesh>
 
       {/* Gold Pillars */}
       {[
         [-2.8, 1, -1.8], [2.8, 1, -1.8], [-2.8, 1, 1.8], [2.8, 1, 1.8],
         [-1, 1, -1.8], [1, 1, -1.8]
       ].map((pos, i) => (
-        <motion3d.mesh
-          key={`pillar-${i}`}
-          initial={{ y: -5, opacity: 0 }}
-          animate={{ y: pos[1], opacity: 1 }}
-          transition={{ duration: 1.5, delay: 0.5 + i * 0.1, ease: "backOut" }}
-          position={pos}
-          castShadow
-        >
+        <mesh key={`pillar-${i}`} position={pos} castShadow material={goldMaterial}>
           <cylinderGeometry args={[0.05, 0.05, 2]} />
-          <meshPhysicalMaterial {...goldMaterial} />
-        </motion3d.mesh>
+        </mesh>
       ))}
 
       {/* Glass Walls */}
-      <motion3d.mesh
-        initial={{ opacity: 0, scaleY: 0 }}
-        animate={{ opacity: 1, scaleY: 1 }}
-        transition={{ duration: 2, delay: 1.5 }}
-        position={[0, 1, 1.8]}
-      >
+      <mesh position={[0, 1, 1.8]} material={glassMaterial}>
         <boxGeometry args={[5.6, 2, 0.05]} />
-        <meshPhysicalMaterial {...glassMaterial} />
-      </motion3d.mesh>
-
-      <motion3d.mesh
-        initial={{ opacity: 0, scaleY: 0 }}
-        animate={{ opacity: 1, scaleY: 1 }}
-        transition={{ duration: 2, delay: 1.7 }}
-        position={[0, 1, -1.8]}
-      >
+      </mesh>
+      <mesh position={[0, 1, -1.8]} material={glassMaterial}>
         <boxGeometry args={[5.6, 2, 0.05]} />
-        <meshPhysicalMaterial {...glassMaterial} />
-      </motion3d.mesh>
+      </mesh>
 
       {/* Roof Slab */}
-      <motion3d.mesh
-        initial={{ y: 5, opacity: 0, rotateX: 0.2 }}
-        animate={{ y: 2.1, opacity: 1, rotateX: 0 }}
-        transition={{ duration: 2.5, delay: 2, type: "spring", bounce: 0.2 }}
-        position={[0, 2.1, 0]}
-        castShadow
-        receiveShadow
-      >
+      <mesh position={[0, 2.1, 0]} castShadow receiveShadow material={darkStoneMaterial}>
         <boxGeometry args={[6.5, 0.2, 4.5]} />
-        <meshPhysicalMaterial {...darkStoneMaterial} />
-      </motion3d.mesh>
+      </mesh>
       
       {/* Interior glowing accent */}
-      <motion3d.mesh
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ duration: 3, delay: 3 }}
-        position={[0, 1, 0]}
-      >
+      <mesh position={[0, 1, 0]} material={glowMaterial}>
         <boxGeometry args={[2, 1.8, 1]} />
-        <meshPhysicalMaterial color="#050505" emissive="#D4AF37" emissiveIntensity={0.5} />
-      </motion3d.mesh>
+      </mesh>
     </group>
   );
 };
