@@ -3,7 +3,7 @@ import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Float, PresentationControls, ContactShadows, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
-import { ChevronRight, Menu, X, ArrowUpRight, ShoppingBag, PenTool, CheckCircle, Send, CheckCircle2, ShoppingCart, Award } from 'lucide-react';
+import { ChevronRight, Menu, X, ArrowUpRight, ShoppingBag, PenTool, CheckCircle, Send, CheckCircle2, ShoppingCart, Award, Trash2 } from 'lucide-react';
 
 const Image3DCard = () => {
   const groupRef = useRef();
@@ -44,7 +44,7 @@ const Image3DCard = () => {
   );
 };
 
-const BoutiqueCatalog = () => {
+const BoutiqueCatalog = ({ onAddToCart }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -91,7 +91,10 @@ const BoutiqueCatalog = () => {
           <div className="p-6">
             <h3 className="text-lg font-outfit text-white mb-2 line-clamp-1">{item.name}</h3>
             <p className="text-[#D4AF37] font-medium mb-6">€{item.price}</p>
-            <button className="w-full bg-white/5 hover:bg-white text-white hover:text-black border border-white/10 py-2.5 rounded-lg text-sm uppercase tracking-widest transition-all duration-300">
+            <button 
+              onClick={() => onAddToCart(item)}
+              className="w-full bg-white/5 hover:bg-white text-white hover:text-black border border-white/10 py-2.5 rounded-lg text-sm uppercase tracking-widest transition-all duration-300"
+            >
               Añadir al carrito
             </button>
           </div>
@@ -148,6 +151,19 @@ const App = () => {
   const [formStatus, setFormStatus] = useState('idle');
   const [isArtisanModalOpen, setArtisanModalOpen] = useState(false);
   const [artisanFormStatus, setArtisanFormStatus] = useState('idle');
+  const [cartItems, setCartItems] = useState([]);
+  const [isCartOpen, setCartOpen] = useState(false);
+
+  const handleAddToCart = (product) => {
+    setCartItems(prev => [...prev, product]);
+    setCartOpen(true);
+  };
+
+  const removeFromCart = (index) => {
+    setCartItems(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const cartTotal = cartItems.reduce((sum, item) => sum + item.price, 0);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -238,16 +254,29 @@ const App = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="hidden md:block"
+            className="hidden md:flex items-center gap-6"
           >
+            <button onClick={() => setCartOpen(true)} className="relative text-white hover:text-[#D4AF37] transition-colors">
+              <ShoppingBag size={20} />
+              {cartItems.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-[#D4AF37] text-black text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                  {cartItems.length}
+                </span>
+              )}
+            </button>
             <a href="#contacto" className="glass-button px-6 py-2.5 rounded-full text-xs tracking-widest font-medium uppercase hover:bg-white hover:text-black transition-all duration-500 flex items-center gap-2">
               Iniciar Proyecto
               <ArrowUpRight size={14} />
             </a>
           </motion.div>
 
-          <button className="md:hidden text-white" onClick={() => setMobileMenuOpen(true)}>
+          <button className="md:hidden text-white relative" onClick={() => setMobileMenuOpen(true)}>
             <Menu />
+            {cartItems.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-[#D4AF37] text-black text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                  {cartItems.length}
+                </span>
+              )}
           </button>
         </div>
       </nav>
@@ -379,7 +408,7 @@ const App = () => {
             </p>
           </div>
           
-          <BoutiqueCatalog />
+          <BoutiqueCatalog onAddToCart={handleAddToCart} />
         </div>
       </section>
 
@@ -557,6 +586,66 @@ const App = () => {
             )}
           </motion.div>
         </div>
+      )}
+
+      {/* Shopping Cart Drawer */}
+      {isCartOpen && (
+        <>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]" onClick={() => setCartOpen(false)}></div>
+          <motion.div 
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed top-0 right-0 h-full w-full max-w-md bg-[#0a0a0a] border-l border-white/10 z-[101] flex flex-col shadow-2xl"
+          >
+            <div className="flex justify-between items-center p-6 border-b border-white/10">
+              <h2 className="text-2xl font-display font-medium flex items-center gap-3">
+                <ShoppingBag size={24} className="text-[#D4AF37]" />
+                Tu Carrito
+              </h2>
+              <button onClick={() => setCartOpen(false)} className="text-white/50 hover:text-white transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+              {cartItems.length === 0 ? (
+                <div className="text-center text-white/40 mt-20">
+                  <ShoppingCart size={48} className="mx-auto mb-4 opacity-20" />
+                  <p>Tu carrito está vacío.</p>
+                </div>
+              ) : (
+                cartItems.map((item, idx) => (
+                  <div key={idx} className="flex gap-4 items-center bg-white/5 p-4 rounded-xl border border-white/5">
+                    <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-lg" />
+                    <div className="flex-1">
+                      <h4 className="font-outfit text-sm text-white mb-1 line-clamp-2">{item.name}</h4>
+                      <p className="text-[#D4AF37] font-medium text-sm">€{item.price}</p>
+                    </div>
+                    <button onClick={() => removeFromCart(idx)} className="text-white/30 hover:text-red-500 transition-colors p-2">
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="p-6 border-t border-white/10 bg-black/50">
+              <div className="flex justify-between items-center mb-6">
+                <span className="text-white/60">Total Estimado</span>
+                <span className="text-2xl font-display font-medium text-[#D4AF37]">€{cartTotal}</span>
+              </div>
+              <button 
+                disabled={cartItems.length === 0}
+                className="w-full bg-[#D4AF37] text-black font-medium py-4 rounded-xl flex justify-center items-center gap-2 hover:bg-white transition-colors disabled:opacity-50 disabled:hover:bg-[#D4AF37]"
+              >
+                Continuar a Checkout
+                <ArrowUpRight size={16} />
+              </button>
+            </div>
+          </motion.div>
+        </>
       )}
     </div>
   );
