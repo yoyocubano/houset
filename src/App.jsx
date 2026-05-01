@@ -12,15 +12,15 @@ const Image3DCard = () => {
   const texture = useTexture(import.meta.env.BASE_URL + 'luxury_house_texture.png');
   texture.colorSpace = THREE.SRGBColorSpace;
 
-  // Entry animation logic
+  // Entry animation logic (only move up, do not rotate continuously)
   useFrame((state, delta) => {
     if (groupRef.current) {
-      // Slow rotation
-      groupRef.current.rotation.y += delta * 0.1;
       // Gentle rise up effect
       if (groupRef.current.position.y < 0) {
         groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, 0, delta * 1.5);
       }
+      // Ensure it faces front perfectly
+      groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, 0, delta * 2);
     }
   });
 
@@ -306,8 +306,8 @@ const App = () => {
               <ambientLight intensity={0.2} />
               <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
               <pointLight position={[-10, -10, -10]} intensity={0.5} />
-              <PresentationControls global config={{ mass: 2, tension: 500 }} snap={{ mass: 4, tension: 1500 }} rotation={[0, 0.3, 0]} polar={[-Math.PI / 3, Math.PI / 3]} azimuth={[-Math.PI / 1.4, Math.PI / 2]}>
-                <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.5}>
+              <PresentationControls global config={{ mass: 2, tension: 500 }} snap={{ mass: 4, tension: 1500 }} rotation={[0, 0, 0]} polar={[-Math.PI / 4, Math.PI / 4]} azimuth={[-Math.PI / 4, Math.PI / 4]}>
+                <Float speed={0} rotationIntensity={0} floatIntensity={0}>
                   <Suspense fallback={null}>
                     <Image3DCard />
                   </Suspense>
@@ -318,15 +318,15 @@ const App = () => {
             </Canvas>
           </div>
           
-          {/* Static Image Layered on top with blend mode (Double Exposure Effect) */}
+          {/* Static Image Layered on top with normal blend mode for clarity */}
           <img 
             src="hero-bg.png" 
             alt="Premium Architecture" 
-            className="absolute inset-0 w-full h-full object-cover opacity-10 mix-blend-overlay scale-105 transform hover:scale-100 transition-transform duration-[20s] ease-out z-10" 
+            className="absolute inset-0 w-full h-full object-cover opacity-50 z-10" 
           />
           
-          {/* Dark Filter Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/90 via-[#050505]/70 to-[#050505] z-20 pointer-events-none"></div>
+          {/* Lighter Dark Filter Overlay to let the image shine through */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/40 via-[#050505]/20 to-[#050505] z-20 pointer-events-none"></div>
         </div>
 
         <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-30 w-full">
