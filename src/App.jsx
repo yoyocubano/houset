@@ -3,7 +3,7 @@ import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Float, PresentationControls, ContactShadows, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
-import { ChevronRight, Menu, X, ArrowUpRight, ShoppingBag, PenTool, CheckCircle, Send, CheckCircle2, ShoppingCart } from 'lucide-react';
+import { ChevronRight, Menu, X, ArrowUpRight, ShoppingBag, PenTool, CheckCircle, Send, CheckCircle2, ShoppingCart, Award } from 'lucide-react';
 
 const Image3DCard = () => {
   const groupRef = useRef();
@@ -59,10 +59,10 @@ const BoutiqueCatalog = () => {
       .catch(err => {
         console.log("Backend no disponible, usando fallback de la caché de Artisan/BigBuy");
         setProducts([
-          { id: 1, name: "Sillón Velvet Lounge", price: 450, provider: "Artisan Furniture EU", image: "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?q=80&w=600&auto=format&fit=crop" },
-          { id: 2, name: "Mesa de Centro Roble Industrial", price: 290, provider: "Creameng / BigBuy", image: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=600&auto=format&fit=crop" },
-          { id: 3, name: "Set Herrajes Premium", price: 120, provider: "Emuca Online", image: "https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?q=80&w=600&auto=format&fit=crop" },
-          { id: 4, name: "Lámpara Colgante Dorada", price: 180, provider: "BigBuy", image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600&auto=format&fit=crop" }
+          { id: 1, name: "Sillón Velvet Lounge", price: 450, provider: "Artisan Furniture EU", isCertifiedArtisan: true, image: "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?q=80&w=600&auto=format&fit=crop" },
+          { id: 2, name: "Mesa de Centro Roble Industrial", price: 290, provider: "Creameng / BigBuy", isCertifiedArtisan: false, image: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=600&auto=format&fit=crop" },
+          { id: 3, name: "Set Herrajes Premium", price: 120, provider: "Emuca Online", isCertifiedArtisan: false, image: "https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?q=80&w=600&auto=format&fit=crop" },
+          { id: 4, name: "Silla Tallada a Mano", price: 340, provider: "Carpintería Local Lux", isCertifiedArtisan: true, image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600&auto=format&fit=crop" }
         ]);
         setLoading(false);
       });
@@ -83,7 +83,8 @@ const BoutiqueCatalog = () => {
         >
           <div className="h-64 overflow-hidden relative">
             <img src={item.image} alt={item.name} className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" />
-            <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[10px] uppercase tracking-wider text-[#D4AF37]">
+            <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[10px] uppercase tracking-wider text-[#D4AF37] flex items-center gap-1.5">
+              {item.isCertifiedArtisan && <Award size={12} className="text-[#D4AF37]" />}
               {item.provider}
             </div>
           </div>
