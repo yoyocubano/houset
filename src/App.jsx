@@ -44,6 +44,62 @@ const Image3DCard = () => {
   );
 };
 
+const BoutiqueCatalog = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Attempt to fetch from our live backend
+    fetch('http://localhost:3000/api/catalog')
+      .then(res => res.json())
+      .then(data => {
+        setProducts(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.log("Backend no disponible, usando fallback de la caché de Artisan/BigBuy");
+        setProducts([
+          { id: 1, name: "Sillón Velvet Lounge", price: 450, provider: "Artisan Furniture EU", image: "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?q=80&w=600&auto=format&fit=crop" },
+          { id: 2, name: "Mesa de Centro Roble Industrial", price: 290, provider: "Creameng / BigBuy", image: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=600&auto=format&fit=crop" },
+          { id: 3, name: "Set Herrajes Premium", price: 120, provider: "Emuca Online", image: "https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?q=80&w=600&auto=format&fit=crop" },
+          { id: 4, name: "Lámpara Colgante Dorada", price: 180, provider: "BigBuy", image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600&auto=format&fit=crop" }
+        ]);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <div className="text-white/50 text-center py-10 animate-pulse">Sincronizando catálogo con Europa...</div>;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" style={{ perspective: 1000 }}>
+      {products.map((item, idx) => (
+        <motion.div 
+          key={item.id}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: idx * 0.1 }}
+          viewport={{ once: true }}
+          className="glass-panel rounded-2xl overflow-hidden group border-white/5 bg-white/[0.02]"
+        >
+          <div className="h-64 overflow-hidden relative">
+            <img src={item.image} alt={item.name} className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" />
+            <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[10px] uppercase tracking-wider text-[#D4AF37]">
+              {item.provider}
+            </div>
+          </div>
+          <div className="p-6">
+            <h3 className="text-lg font-outfit text-white mb-2 line-clamp-1">{item.name}</h3>
+            <p className="text-[#D4AF37] font-medium mb-6">€{item.price}</p>
+            <button className="w-full bg-white/5 hover:bg-white text-white hover:text-black border border-white/10 py-2.5 rounded-lg text-sm uppercase tracking-widest transition-all duration-300">
+              Añadir al carrito
+            </button>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
+};
+
 const TiltCard = ({ children, className }) => {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -285,38 +341,17 @@ const App = () => {
         </div>
       </section>
 
-      {/* 3D Boutique Section */}
+      {/* Boutique / Dropshipping Dynamic Catalog Section */}
       <section id="boutique" className="py-32 relative border-t border-white/5">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="text-center mb-20">
             <h2 className="text-4xl md:text-5xl font-display font-medium mb-6">Boutique <span className="text-gradient-gold">Curation</span></h2>
-            <p className="text-white/60 max-w-2xl mx-auto font-light">Explora nuestra selección de materiales y coordinadores. Mueve el ratón para interactuar con el catálogo.</p>
+            <p className="text-white/60 max-w-2xl mx-auto font-light">
+              Mobiliario de diseño y herrajes premium europeos. Sincronizado en tiempo real vía API con Artisan Furniture EU, Emuca y BigBuy.
+            </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10" style={{ perspective: 1000 }}>
-            {[
-              { title: "Materiales & Pinturas", type: "Tienda Online", img: "store-materials.png", action: "Comprar Materiales" },
-              { title: "Mobiliario de Lujo", type: "Afiliados", img: "store-furniture.png", action: "Ver Colección" },
-              { title: "Red de Artesanos", type: "Subcontratación", img: "store-craftsmen.png", action: "Agendar Proyecto" }
-            ].map((item, idx) => (
-              <TiltCard key={idx} className="h-[480px] w-full cursor-pointer group/card">
-                <div className="glass-panel w-full h-full rounded-2xl overflow-hidden relative group border-white/10 shadow-2xl">
-                  <img src={item.img} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity duration-500 scale-105" alt={item.title} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent"></div>
-                  
-                  <div className="absolute bottom-0 left-0 p-8 w-full transform translate-y-6 group-hover/card:translate-y-0 transition-transform duration-300 flex flex-col h-full justify-end">
-                    <span className="text-[#D4AF37] text-xs tracking-[0.2em] uppercase font-bold mb-2 block">{item.type}</span>
-                    <h3 className="text-3xl font-display font-medium text-white mb-6">{item.title}</h3>
-                    
-                    <button className="glass-button px-6 py-3 rounded-full font-medium flex items-center justify-center gap-2 opacity-0 group-hover/card:opacity-100 transition-all duration-500 transform translate-y-4 group-hover/card:translate-y-0">
-                      {item.action}
-                      <ArrowUpRight size={16} />
-                    </button>
-                  </div>
-                </div>
-              </TiltCard>
-            ))}
-          </div>
+          <BoutiqueCatalog />
         </div>
       </section>
 
