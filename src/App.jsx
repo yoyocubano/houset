@@ -29,7 +29,7 @@ const Image3DCard = () => {
       {/* Floating 3D image card */}
       <mesh castShadow receiveShadow>
         {/* We use a thin box to give the image card some 3D volume */}
-        <boxGeometry args={[7, 7, 0.1]} />
+        <boxGeometry args={[4.5, 5.5, 0.1]} />
         {/* Material array: [right, left, top, bottom, front, back] */}
         <meshPhysicalMaterial attach="material-0" color="#D4AF37" metalness={0.8} roughness={0.2} />
         <meshPhysicalMaterial attach="material-1" color="#D4AF37" metalness={0.8} roughness={0.2} />
@@ -291,42 +291,49 @@ const App = () => {
             className="absolute inset-0 z-0 opacity-40 mix-blend-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#D4AF37]/10 via-[#050505] to-[#1a1a1a] bg-[length:200%_200%]"
           />
           
-          {/* REAL 3D WebGL Assembling Architecture */}
-          <div className="absolute inset-0 z-0 opacity-80 pointer-events-none" style={{ width: '100vw', height: '100vh' }}>
-            <Canvas 
-              shadows 
-              camera={{ position: [5, 4, 8], fov: 45 }}
-              gl={{ antialias: true, alpha: true, powerPreference: 'default', preserveDrawingBuffer: true }}
-              dpr={[1, 2]}
-              style={{ width: '100%', height: '100%', pointerEvents: 'none' }}
-              onCreated={({ gl }) => {
-                gl.setClearColor(0x000000, 0); // Transparent background
-              }}
-            >
-              <ambientLight intensity={0.2} />
-              <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
-              <pointLight position={[-10, -10, -10]} intensity={0.5} />
-              <PresentationControls global config={{ mass: 2, tension: 500 }} snap={{ mass: 4, tension: 1500 }} rotation={[0, 0, 0]} polar={[-Math.PI / 4, Math.PI / 4]} azimuth={[-Math.PI / 4, Math.PI / 4]}>
-                <Float speed={0} rotationIntensity={0} floatIntensity={0}>
-                  <Suspense fallback={null}>
-                    <Image3DCard />
-                  </Suspense>
-                </Float>
-              </PresentationControls>
-              <ContactShadows position={[0, -1.5, 0]} opacity={0.4} scale={20} blur={2} far={4} />
-              <Environment preset="city" />
-            </Canvas>
+          {/* Dark Filter Overlay para asegurar que el texto sea legible */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#050505] via-[#050505]/80 to-transparent z-10 pointer-events-none"></div>
+          
+          {/* --- GALERÍA DE IMÁGENES DECALADAS (OFFSET) A LA DERECHA --- */}
+          <div className="absolute right-[5%] top-[50%] -translate-y-1/2 w-[800px] h-[600px] z-20 hidden lg:block pointer-events-none">
+            
+            {/* IMAGEN 2: Estática (hero-bg.png) - Decalada hacia atrás y rotada */}
+            <div className="absolute right-10 top-20 w-[350px] h-[450px]">
+              <img 
+                src="hero-bg.png" 
+                alt="Premium Architecture" 
+                className="w-full h-full object-cover rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.8)] border border-white/5 transform rotate-6 hover:rotate-0 transition-transform duration-700" 
+              />
+            </div>
+
+            {/* IMAGEN 1: Tarjeta 3D WebGL - Decalada hacia adelante y a la izquierda */}
+            <div className="absolute left-10 top-0 w-[400px] h-[550px] pointer-events-auto">
+              <Canvas 
+                shadows 
+                camera={{ position: [0, 0, 7], fov: 45 }}
+                gl={{ antialias: true, alpha: true, powerPreference: 'default', preserveDrawingBuffer: true }}
+                dpr={[1, 2]}
+                style={{ width: '100%', height: '100%' }}
+                onCreated={({ gl }) => {
+                  gl.setClearColor(0x000000, 0); // Transparent background
+                }}
+              >
+                <ambientLight intensity={0.5} />
+                <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
+                <pointLight position={[-10, -10, -10]} intensity={0.5} />
+                <PresentationControls global config={{ mass: 2, tension: 500 }} snap={{ mass: 4, tension: 1500 }} rotation={[0, 0.1, 0]} polar={[-Math.PI / 4, Math.PI / 4]} azimuth={[-Math.PI / 4, Math.PI / 4]}>
+                  <Float speed={0} rotationIntensity={0} floatIntensity={0}>
+                    <Suspense fallback={null}>
+                      <Image3DCard />
+                    </Suspense>
+                  </Float>
+                </PresentationControls>
+                <ContactShadows position={[0, -2.8, 0]} opacity={0.5} scale={10} blur={2} far={4} />
+                <Environment preset="city" />
+              </Canvas>
+            </div>
+
           </div>
-          
-          {/* Static Image Layered on top with normal blend mode for clarity */}
-          <img 
-            src="hero-bg.png" 
-            alt="Premium Architecture" 
-            className="absolute inset-0 w-full h-full object-cover opacity-50 z-10" 
-          />
-          
-          {/* Lighter Dark Filter Overlay to let the image shine through */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/40 via-[#050505]/20 to-[#050505] z-20 pointer-events-none"></div>
         </div>
 
         <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-30 w-full">
