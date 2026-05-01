@@ -62,6 +62,20 @@ app.get('/api/catalog', (req, res) => {
   res.status(200).json(mockProducts);
 });
 
+// 4. API for Local Artisans & External Businesses to connect to our Network
+app.post('/api/partners/register', (req, res) => {
+  const { companyName, specialty, email, phone } = req.body;
+  
+  if (!companyName || !email) {
+    return res.status(400).json({ error: 'Company Name and Email are required to join the B2B network.' });
+  }
+
+  // Simulate saving to database and triggering notification to admin
+  console.log(`[NEW B2B PARTNER] ${companyName} (${specialty}) wants to join the network! Email: ${email}, Phone: ${phone}`);
+  
+  res.status(200).json({ success: true, message: 'Perfil de artesano/B2B registrado con éxito. Nuestro equipo validará su solicitud.' });
+});
+
 app.listen(PORT, () => {
   console.log(`Backend server running on http://localhost:${PORT}`);
 });
