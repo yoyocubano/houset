@@ -1,0 +1,12 @@
+name = "houset-api"
+main = "src/index.js"
+compatibility_date = "2024-05-02"
+
+[vars]
+# Variables de entorno públicas o de control (Opcional)
+# Los secretos (API keys) se configuran usando `npx wrangler secret put <NAME>`
+
+# SUPABASE_URL = "https://tu-proyecto.supabase.co"
+# SUPABASE_SERVICE_ROLE_KEY = "tu-key"
+# RESEND_API_KEY = "re_..."
+# STRIPE_SECRET_KEY = "sk_..."

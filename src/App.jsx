@@ -6,9 +6,11 @@ import * as THREE from 'three';
 import { ChevronRight, Menu, X, ArrowUpRight, ShoppingBag, PenTool, CheckCircle, Send, CheckCircle2, ShoppingCart, Award, Trash2 } from 'lucide-react';
 import HousetConserje from './HousetConserje.jsx';
 import { loadStripe } from '@stripe/stripe-js';
+import { translations } from './translations.js';
 
-// Initialize Stripe (public key)
+// Configuration
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || 'pk_test_dummy');
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const Image3DCard = () => {
   const groupRef = useRef();
@@ -55,7 +57,7 @@ const BoutiqueCatalog = ({ onAddToCart }) => {
 
   useEffect(() => {
     // Attempt to fetch from our live backend
-    fetch('http://localhost:3000/api/catalog')
+    fetch(`${API_URL}/api/catalog`)
       .then(res => res.json())
       .then(data => {
         setProducts(data);
@@ -159,13 +161,16 @@ const App = () => {
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setCartOpen] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [lang, setLang] = useState('fr');
+  
+  const t = translations[lang] || translations['fr'];
 
   const handleCheckout = async () => {
     if (cartItems.length === 0) return;
     setIsCheckingOut(true);
 
     try {
-      const response = await fetch('http://localhost:3000/api/create-checkout-session', {
+      const response = await fetch(`${API_URL}/api/create-checkout-session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -227,12 +232,12 @@ const App = () => {
     const data = Object.fromEntries(formData.entries());
 
     try {
-      const res = await fetch('http://localhost:3000/api/contact', {
+      const response = await fetch(`${API_URL}/api/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
-      if (res.ok) {
+      if (response.ok) {
         setFormStatus('success');
       } else {
         setFormStatus('error');
@@ -253,12 +258,12 @@ const App = () => {
 
     try {
       // Send to our new backend API
-      const res = await fetch('http://localhost:3000/api/partners/register', {
+      const response = await fetch(`${API_URL}/api/partners/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
-      if (res.ok) {
+      if (response.ok) {
         setArtisanFormStatus('success');
       } else {
         setArtisanFormStatus('error');
@@ -288,16 +293,16 @@ const App = () => {
           </motion.div>
           
           <div className="hidden md:flex items-center gap-10">
-            {['Modelo', 'Boutique', 'Contacto'].map((item, i) => (
+            {[{name: t.nav.services, id: 'modelo'}, {name: t.nav.artisans, id: 'boutique'}, {name: t.nav.about, id: 'contacto'}].map((item, i) => (
               <motion.a 
-                key={item}
-                href={`#${item.toLowerCase()}`}
+                key={item.id}
+                href={`#${item.id}`}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="text-xs font-medium tracking-widest text-white/70 hover:text-white uppercase transition-colors relative group"
               >
-                {item}
+                {item.name}
                 <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-[#D4AF37] transition-all duration-300 group-hover:w-full"></span>
               </motion.a>
             ))}
@@ -309,6 +314,17 @@ const App = () => {
             transition={{ duration: 0.8 }}
             className="hidden md:flex items-center gap-6"
           >
+            <select 
+              value={lang} 
+              onChange={(e) => setLang(e.target.value)}
+              className="bg-transparent border border-white/20 rounded-md text-xs font-display text-white/80 focus:outline-none focus:border-[#D4AF37] px-2 py-1 uppercase cursor-pointer"
+            >
+              <option value="fr" className="bg-black text-white">FR</option>
+              <option value="en" className="bg-black text-white">EN</option>
+              <option value="es" className="bg-black text-white">ES</option>
+              <option value="lu" className="bg-black text-white">LU</option>
+            </select>
+            
             <button onClick={() => setCartOpen(true)} className="relative text-white hover:text-[#D4AF37] transition-colors">
               <ShoppingBag size={20} />
               {cartItems.length > 0 && (
@@ -402,21 +418,21 @@ const App = () => {
             </motion.div>
             
             <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl lg:text-[80px] leading-[1.05] font-display font-medium tracking-tight mb-8">
-              Tu espacio ideal en Luxemburgo. <br className="hidden md:block"/>
-              <span className="text-gradient-gold italic font-light pr-4">Diseño ensamblado en 8K.</span>
+              {t.hero.title} <br className="hidden md:block"/>
+              <span className="text-gradient-gold italic font-light pr-4">Premium WebGL.</span>
             </motion.h1>
             
             <motion.p variants={fadeUp} className="text-lg md:text-xl text-white/60 font-light max-w-2xl mb-12 leading-relaxed">
-              Descubre nuestra boutique online con los mejores materiales. Te asesoramos en tu proyecto y coordinamos a los artesanos más calificados para construir tu visión.
+              {t.hero.subtitle}
             </motion.p>
             
             <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-5">
               <a href="#boutique" className="bg-white text-black px-8 py-4 rounded-full font-medium flex items-center justify-center gap-2 hover:bg-[#D4AF37] hover:scale-105 transition-all duration-300">
                 <ShoppingCart size={18} />
-                Explorar Boutique
+                {t.hero.btnCatalog}
               </a>
               <a href="#modelo" className="glass-button px-8 py-4 rounded-full font-medium flex items-center justify-center gap-2">
-                ¿Cómo funciona?
+                {t.hero.btnConsult}
               </a>
             </motion.div>
           </motion.div>
