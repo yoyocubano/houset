@@ -51,13 +51,13 @@ const Image3DCard = () => {
   );
 };
 
-const BoutiqueCatalog = ({ onAddToCart }) => {
+const BoutiqueCatalog = ({ onAddToCart, t, lang }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Attempt to fetch from our live backend
-    fetch(`${API_URL}/api/catalog`)
+    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/catalog`)
       .then(res => res.json())
       .then(data => {
         setProducts(data);
@@ -66,10 +66,10 @@ const BoutiqueCatalog = ({ onAddToCart }) => {
       .catch(err => {
         console.log("Backend no disponible, usando fallback de la caché de Artisan/BigBuy");
         setProducts([
-          { id: 1, name: "Sillón Velvet Lounge", price: 450, provider: "Artisan Furniture EU", isCertifiedArtisan: true, image: "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?q=80&w=600&auto=format&fit=crop" },
-          { id: 2, name: "Mesa de Centro Roble Industrial", price: 290, provider: "Creameng / BigBuy", isCertifiedArtisan: false, image: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=600&auto=format&fit=crop" },
-          { id: 3, name: "Set Herrajes Premium", price: 120, provider: "Emuca Online", isCertifiedArtisan: false, image: "https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?q=80&w=600&auto=format&fit=crop" },
-          { id: 4, name: "Silla Tallada a Mano", price: 340, provider: "Carpintería Local Lux", isCertifiedArtisan: true, image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600&auto=format&fit=crop" }
+          { id: 1, idx: 0, price: 450, isCertifiedArtisan: true, image: "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?q=80&w=600&auto=format&fit=crop" },
+          { id: 2, idx: 1, price: 290, isCertifiedArtisan: false, image: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=600&auto=format&fit=crop" },
+          { id: 3, idx: 2, price: 120, isCertifiedArtisan: false, image: "https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?q=80&w=600&auto=format&fit=crop" },
+          { id: 4, idx: 3, price: 340, isCertifiedArtisan: true, image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600&auto=format&fit=crop" }
         ]);
         setLoading(false);
       });
@@ -89,20 +89,20 @@ const BoutiqueCatalog = ({ onAddToCart }) => {
           className="glass-panel rounded-2xl overflow-hidden group border-white/5 bg-white/[0.02]"
         >
           <div className="h-64 overflow-hidden relative">
-            <img src={item.image} alt={item.name} className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" />
+            <img src={item.image} alt={t.catalog.items[item.idx].name} className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" />
             <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[10px] uppercase tracking-wider text-[#D4AF37] flex items-center gap-1.5">
               {item.isCertifiedArtisan && <Award size={12} className="text-[#D4AF37]" />}
-              {item.provider}
+              {t.catalog.items[item.idx].provider}
             </div>
           </div>
           <div className="p-6">
-            <h3 className="text-lg font-outfit text-white mb-2 line-clamp-1">{item.name}</h3>
+            <h3 className="text-lg font-outfit text-white mb-2 line-clamp-1">{t.catalog.items[item.idx].name}</h3>
             <p className="text-[#D4AF37] font-medium mb-6">€{item.price}</p>
             <button 
               onClick={() => onAddToCart(item)}
               className="w-full bg-white/5 hover:bg-white text-white hover:text-black border border-white/10 py-2.5 rounded-lg text-sm uppercase tracking-widest transition-all duration-300"
             >
-              Añadir al carrito
+              {t.catalog.addToCart}
             </button>
           </div>
         </motion.div>
@@ -350,6 +350,48 @@ const App = () => {
         </div>
       </nav>
 
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 bg-[#050505] z-50 md:hidden flex flex-col p-6">
+          <div className="flex justify-between items-center mb-12">
+            <img src={import.meta.env.BASE_URL + "icons.svg"} alt="Logo" className="h-8" />
+            <button onClick={() => setMobileMenuOpen(false)} className="text-white">
+              <X size={24} />
+            </button>
+          </div>
+          
+          <div className="flex flex-col gap-8 text-xl font-display font-medium">
+            {[{name: t.nav.services, id: 'modelo'}, {name: t.nav.artisans, id: 'boutique'}, {name: t.nav.about, id: 'contacto'}].map((item) => (
+              <a 
+                key={item.id} 
+                href={`#${item.id}`} 
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-white hover:text-[#D4AF37] uppercase tracking-widest"
+              >
+                {item.name}
+              </a>
+            ))}
+          </div>
+
+          <div className="mt-auto flex flex-col gap-6">
+            <select 
+              value={lang} 
+              onChange={(e) => setLang(e.target.value)}
+              className="bg-white/5 border border-white/20 rounded-xl text-lg font-display text-white focus:outline-none focus:border-[#D4AF37] px-4 py-3 uppercase cursor-pointer"
+            >
+              <option value="fr" className="bg-black text-white">FR</option>
+              <option value="en" className="bg-black text-white">EN</option>
+              <option value="es" className="bg-black text-white">ES</option>
+              <option value="lu" className="bg-black text-white">LU</option>
+            </select>
+            <button onClick={() => { setCartOpen(true); setMobileMenuOpen(false); }} className="w-full glass-button py-4 rounded-xl flex justify-center items-center gap-2">
+              <ShoppingBag size={20} />
+              Tu Carrito ({cartItems.length})
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
         <div className="absolute inset-0 z-0 bg-[#050505]">
@@ -485,7 +527,7 @@ const App = () => {
             </a>
           </div>
           
-          <BoutiqueCatalog onAddToCart={handleAddToCart} />
+          <BoutiqueCatalog onAddToCart={handleAddToCart} t={t} lang={lang} />
         </div>
       </section>
 
@@ -500,7 +542,7 @@ const App = () => {
             transition={{ duration: 0.8 }}
             className="text-4xl md:text-5xl font-display font-medium mb-6"
           >
-            Empieza tu asesoría hoy
+            {t.contact.title}
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 30 }}
@@ -509,7 +551,7 @@ const App = () => {
             transition={{ duration: 0.8, delay: 0.1 }}
             className="text-white/60 mb-12 max-w-xl mx-auto"
           >
-            Nosotros organizamos los materiales y los artesanos. Tú solo disfrutas el resultado. Déjanos tus datos o hablemos por WhatsApp.
+            {t.contact.desc}
           </motion.p>
           
           <motion.div
@@ -530,29 +572,29 @@ const App = () => {
                 <input 
                   type="text" 
                   name="name" 
-                  placeholder="Tu Nombre Completo" 
+                  placeholder={t.contact.namePlaceholder} 
                   required 
                   className="w-full px-6 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-[#D4AF37] transition-colors"
                 />
                 <input 
                   type="email" 
                   name="email" 
-                  placeholder="Tu Correo Electrónico" 
+                  placeholder={t.contact.emailPlaceholder} 
                   required 
                   className="w-full px-6 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-[#D4AF37] transition-colors"
                 />
                 <select name="service" className="w-full px-6 py-4 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-[#D4AF37] transition-colors appearance-none">
-                  <option value="" className="bg-[#121212]">¿Qué necesitas?</option>
-                  <option value="materials" className="bg-[#121212]">Comprar Materiales / Mobiliario</option>
-                  <option value="consulting" className="bg-[#121212]">Asesoría de Proyecto Completa</option>
-                  <option value="craftsmen" className="bg-[#121212]">Necesito que coordinen artesanos</option>
+                  <option value="" className="bg-[#121212]">{t.contact.servicePlaceholder}</option>
+                  <option value="materials" className="bg-[#121212]">{t.contact.opt1}</option>
+                  <option value="consulting" className="bg-[#121212]">{t.contact.opt2}</option>
+                  <option value="craftsmen" className="bg-[#121212]">{t.contact.opt3}</option>
                 </select>
                 <button 
                   type="submit" 
                   disabled={formStatus === 'submitting'}
                   className="bg-white text-black px-8 py-4 mt-2 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-[#D4AF37] transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)] disabled:opacity-50"
                 >
-                  {formStatus === 'submitting' ? 'Enviando...' : 'Solicitar Asesoría'}
+                  {formStatus === 'submitting' ? 'Enviando...' : t.contact.btnSubmit}
                   <Send size={18} />
                 </button>
               </form>
@@ -560,7 +602,7 @@ const App = () => {
 
             <div className="flex items-center gap-4 my-8">
               <div className="flex-1 h-[1px] bg-white/10"></div>
-              <span className="text-white/40 text-sm">O VÍA DIRECTA</span>
+              <span className="text-white/40 text-sm">{t.contact.or}</span>
               <div className="flex-1 h-[1px] bg-white/10"></div>
             </div>
 
@@ -570,7 +612,7 @@ const App = () => {
               rel="noreferrer"
               className="bg-[#25D366] text-white px-8 py-4 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-[#1fae51] transition-all shadow-[0_0_30px_rgba(37,211,102,0.2)]"
             >
-              Contactar por WhatsApp
+              {t.contact.whatsapp}
             </a>
           </motion.div>
         </div>
@@ -579,12 +621,12 @@ const App = () => {
       {/* Footer */}
       <footer className="py-8 border-t border-white/5 relative z-10 bg-[#050505]">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-white/30 text-sm">© {new Date().getFullYear()} HomeSetup Luxembourg. Consultoría y Boutique Online.</p>
+          <p className="text-white/30 text-sm">© {new Date().getFullYear()} {t.footer.copyright}</p>
           <button 
             onClick={() => setArtisanModalOpen(true)}
             className="text-[#D4AF37] hover:text-white transition-colors text-sm uppercase tracking-widest font-medium"
           >
-            Portal para Artesanos & B2B
+            {t.footer.portal}
           </button>
         </div>
       </footer>
@@ -681,7 +723,7 @@ const App = () => {
               {cartItems.length === 0 ? (
                 <div className="text-center text-white/40 mt-20">
                   <ShoppingCart size={48} className="mx-auto mb-4 opacity-20" />
-                  <p>Tu carrito está vacío.</p>
+                  <p>{t.catalog.cartEmpty}</p>
                 </div>
               ) : (
                 cartItems.map((item, idx) => (
