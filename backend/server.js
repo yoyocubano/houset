@@ -3,20 +3,38 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import { createClient } from '@supabase/supabase-js';
+import { Resend } from 'resend';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// --- 🛡️ SECURITY MIDDLEWARE ---
-app.use(helmet()); // Sets secure HTTP headers
-app.use(express.json({ limit: '10kb' })); // Prevent large payloads (DoS)
+// --- 🗄️ DATABASE & EMAIL CLIENTS ---
+const supabase = process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
+  ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+  : null;
 
-// Strict CORS: Only allow our GitHub Pages frontend to communicate with this backend
-const allowedOrigins = ['https://yoyocubano.github.io', 'http://localhost:5173'];
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
+
+if (!supabase) console.warn('[⚠️  HOUSET] Supabase not configured — running in mock mode. Add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to .env');
+if (!resend)   console.warn('[⚠️  HOUSET] Resend not configured — emails disabled. Add RESEND_API_KEY to .env');
+
+// --- 🛡️ SECURITY MIDDLEWARE ---
+app.use(helmet());
+app.use(express.json({ limit: '10kb' }));
+
+const allowedOrigins = [
+  'https://yoyocubano.github.io',
+  'http://localhost:5173',
+  'http://localhost:4173',
+];
+
 app.use(cors({
-  origin: function (origin, callback) {
+  origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -26,76 +44,167 @@ app.use(cors({
   credentials: true
 }));
 
-// Rate Limiting: Prevent Brute Force & Spam
+// Rate limiting global
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per window
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   message: { error: 'Demasiadas solicitudes desde esta IP, por favor intente más tarde.' }
 });
 app.use('/api/', apiLimiter);
 
-// --- 🌐 ROUTES ---
+// --- 🏥 HEALTH CHECK ---
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    supabase: !!supabase,
+    resend: !!resend,
+    timestamp: new Date().toISOString()
+  });
+});
 
-app.post('/api/contact', (req, res) => {
-  const { name, email } = req.body;
-  
+// --- 🛍️ CATALOG — From Supabase (fallback to mock) ---
+app.get('/api/catalog', async (req, res) => {
+  const mockProducts = [
+    { id: 1, name: "Fauteuil Velvet Lounge", price: 450, provider: "Artisan Furniture EU", is_certified_artisan: true, image: "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?q=80&w=600&auto=format&fit=crop" },
+    { id: 2, name: "Table Basse Chêne Industriel", price: 290, provider: "Creameng / BigBuy", is_certified_artisan: false, image: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=600&auto=format&fit=crop" },
+    { id: 3, name: "Set Quincaillerie Premium", price: 120, provider: "Emuca Online", is_certified_artisan: false, image: "https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?q=80&w=600&auto=format&fit=crop" },
+    { id: 4, name: "Chaise Sculptée à la Main", price: 340, provider: "Menuiserie Locale Lux", is_certified_artisan: true, image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600&auto=format&fit=crop" }
+  ];
+
+  if (!supabase) return res.json(mockProducts);
+
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .eq('in_stock', true)
+    .order('created_at', { ascending: false });
+
+  if (error || !data?.length) {
+    console.log('[CATALOG] Supabase empty or error — using mock data');
+    return res.json(mockProducts);
+  }
+
+  res.json(data);
+});
+
+// --- 📬 CONTACT FORM — Save to Supabase + Email notification ---
+app.post('/api/contact', async (req, res) => {
+  const { name, email, service } = req.body;
+
   if (!name || !email) {
     return res.status(400).json({ error: 'Name and email are required.' });
   }
 
-  console.log(`[CONTACT RECEIVED] Name: ${name}, Email: ${email}`);
-  res.status(200).json({ success: true, message: 'Contact saved successfully. We will reach out soon.' });
+  // 1. Persist to Supabase
+  if (supabase) {
+    const { error } = await supabase
+      .from('contact_leads')
+      .insert({ name, email, service, source: 'houset-web' });
+    if (error) console.error('[CONTACT] Supabase insert error:', error.message);
+  }
+
+  // 2. Email notification to Comandante
+  if (resend) {
+    await resend.emails.send({
+      from: 'houset@weluxevents.com',
+      to: 'yucolaguilar@gmail.com',
+      subject: `🏠 Nuevo Lead Houset: ${name}`,
+      html: `
+        <h2>Nuevo lead en HomeSetup Luxembourg</h2>
+        <p><b>Nombre:</b> ${name}</p>
+        <p><b>Email:</b> ${email}</p>
+        <p><b>Servicio:</b> ${service || 'No especificado'}</p>
+        <p><i>Recibido: ${new Date().toLocaleString('fr-LU', { timeZone: 'Europe/Luxembourg' })}</i></p>
+      `
+    }).catch(err => console.error('[CONTACT] Resend error:', err.message));
+  }
+
+  console.log(`[CONTACT] ${name} <${email}> → ${service}`);
+  res.status(200).json({ success: true, message: 'Solicitud recibida. Nos pondremos en contacto pronto.' });
 });
 
-// --- 🛍️ E-COMMERCE INTEGRATION ---
+// --- 🔧 ARTISAN B2B — Save to Supabase with pending status ---
+const partnerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  message: { error: 'Límite de solicitudes de socio alcanzado.' }
+});
 
-// 1. Webhook for Artisan Furniture EU (Real-time Sync)
-// 🔒 SECURED: Requires an API Key in the headers to prevent unauthorized payload injection
-app.post('/api/webhooks/artisan', (req, res) => {
+app.post('/api/partners/register', partnerLimiter, async (req, res) => {
+  const { companyName, specialty, email, phone } = req.body;
+
+  if (!companyName || !email) {
+    return res.status(400).json({ error: 'Company Name and Email are required.' });
+  }
+
+  // 1. Persist to Supabase
+  if (supabase) {
+    const { error } = await supabase
+      .from('artisan_partners')
+      .insert({
+        company_name: companyName,
+        specialty,
+        email,
+        phone,
+        status: 'pending'
+      });
+
+    if (error) {
+      if (error.code === '23505') { // unique violation
+        return res.status(409).json({ error: 'Este email ya está registrado en nuestra red B2B.' });
+      }
+      console.error('[PARTNER] Supabase insert error:', error.message);
+    }
+  }
+
+  // 2. Email notification to Comandante
+  if (resend) {
+    await resend.emails.send({
+      from: 'houset@weluxevents.com',
+      to: 'yucolaguilar@gmail.com',
+      subject: `🔧 Nuevo Artesano B2B: ${companyName}`,
+      html: `
+        <h2>Nueva solicitud de artesano/B2B</h2>
+        <p><b>Empresa:</b> ${companyName}</p>
+        <p><b>Especialidad:</b> ${specialty}</p>
+        <p><b>Email:</b> ${email}</p>
+        <p><b>Tel:</b> ${phone}</p>
+        <p><b>Status:</b> PENDIENTE DE REVISIÓN</p>
+      `
+    }).catch(err => console.error('[PARTNER] Resend error:', err.message));
+  }
+
+  console.log(`[B2B PARTNER] ${companyName} (${specialty}) registered. Email: ${email}`);
+  res.status(200).json({ success: true, message: 'Perfil registrado. Nuestro equipo validará su solicitud en 24h.' });
+});
+
+// --- 🔒 ARTISAN WEBHOOK (Artisan Furniture EU sync) ---
+app.post('/api/webhooks/artisan', async (req, res) => {
   const apiKey = req.headers['x-api-key'];
   if (apiKey !== process.env.ARTISAN_WEBHOOK_SECRET) {
-    return res.status(401).json({ error: 'No autorizado. Se requiere API Key válida.' });
+    return res.status(401).json({ error: 'No autorizado.' });
   }
 
   const productData = req.body;
-  console.log(`[ARTISAN WEBHOOK] Received update for:`, productData?.sku || 'Unknown Product');
-  
-  res.status(200).send('Webhook received successfully');
-});
+  console.log(`[ARTISAN WEBHOOK] Product update:`, productData?.sku || 'Unknown');
 
-// 2. Placeholder for BigBuy API sync
-export const syncBigBuyCatalog = async () => {
-  console.log('[BIGBUY SYNC] Fetching latest tools and furniture catalog...');
-};
-
-// 3. Endpoint for our React Frontend to fetch the unified catalog
-app.get('/api/catalog', (req, res) => {
-  const mockProducts = [
-    { id: 1, name: "Sillón Velvet Lounge", price: 450, provider: "Artisan Furniture EU", isCertifiedArtisan: true, image: "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?q=80&w=600&auto=format&fit=crop" },
-    { id: 2, name: "Mesa de Centro Roble Industrial", price: 290, provider: "Creameng", isCertifiedArtisan: false, image: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=600&auto=format&fit=crop" },
-    { id: 3, name: "Set Herrajes Premium", price: 120, provider: "Emuca Online", isCertifiedArtisan: false, image: "https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?q=80&w=600&auto=format&fit=crop" },
-    { id: 4, name: "Silla Tallada a Mano", price: 340, provider: "Carpintería Local Lux", isCertifiedArtisan: true, image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600&auto=format&fit=crop" }
-  ];
-  
-  res.status(200).json(mockProducts);
-});
-
-// 4. API for Local Artisans to connect
-// 🔒 SECURED: Rate limit strictly to prevent form spam
-const partnerLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 5, message: { error: 'Límite de solicitudes de socio alcanzado.' } });
-app.post('/api/partners/register', partnerLimiter, (req, res) => {
-  const { companyName, specialty, email, phone } = req.body;
-  
-  if (!companyName || !email) {
-    return res.status(400).json({ error: 'Company Name and Email are required to join the B2B network.' });
+  // Upsert product in Supabase
+  if (supabase && productData) {
+    await supabase.from('products').upsert(productData, { onConflict: 'id' });
   }
 
-  // Sanitize simple inputs (Basic HTML escaping would go here if saving to DB)
-  console.log(`[NEW B2B PARTNER] ${companyName} (${specialty}) wants to join! Email: ${email}, Phone: ${phone}`);
-  
-  res.status(200).json({ success: true, message: 'Perfil de artesano/B2B registrado con éxito. Nuestro equipo validará su solicitud.' });
+  res.status(200).json({ received: true });
 });
 
+// --- 🌐 START ---
 app.listen(PORT, () => {
-  console.log(`Backend server running on http://localhost:${PORT} 🔒 Secured with Helmet & Rate Limiting`);
+  console.log(`
+  ╔══════════════════════════════════════════════╗
+  ║   🏠 HomeSetup Luxembourg — Backend API      ║
+  ║   Running on http://localhost:${PORT}           ║
+  ║   🛡️  Helmet + Rate Limit + CORS             ║
+  ║   🗄️  Supabase: ${supabase ? '✅ Connected' : '⚠️  Mock mode'}              ║
+  ║   📬 Resend:    ${resend   ? '✅ Connected' : '⚠️  Disabled  '}              ║
+  ╚══════════════════════════════════════════════╝
+  `);
 });

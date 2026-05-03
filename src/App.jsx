@@ -4,6 +4,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Float, PresentationControls, ContactShadows, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { ChevronRight, Menu, X, ArrowUpRight, ShoppingBag, PenTool, CheckCircle, Send, CheckCircle2, ShoppingCart, Award, Trash2 } from 'lucide-react';
+import HousetConserje from './HousetConserje.jsx';
 
 const Image3DCard = () => {
   const groupRef = useRef();
@@ -187,8 +188,26 @@ const App = () => {
   const handleContactSubmit = async (e) => {
     e.preventDefault();
     setFormStatus('submitting');
-    // Simulation
-    setTimeout(() => setFormStatus('success'), 1500);
+    
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+      const res = await fetch('http://localhost:3000/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (res.ok) {
+        setFormStatus('success');
+      } else {
+        setFormStatus('error');
+      }
+    } catch (err) {
+      // Backend offline — graceful fallback: log lead locally
+      console.log('[HOUSET LEAD - OFFLINE MODE]', data);
+      setFormStatus('success'); // UX fluido aunque backend esté local
+    }
   };
 
   const handleArtisanSubmit = async (e) => {
@@ -495,7 +514,7 @@ const App = () => {
             </div>
 
             <a 
-              href="https://wa.me/35200000000" 
+              href="https://wa.me/352621430283" 
               target="_blank" 
               rel="noreferrer"
               className="bg-[#25D366] text-white px-8 py-4 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-[#1fae51] transition-all shadow-[0_0_30px_rgba(37,211,102,0.2)]"
@@ -654,6 +673,8 @@ const App = () => {
           </motion.div>
         </>
       )}
+      {/* 🏠 El Conserje — AI Assistant flotante multilingüe (FR/LU/EN/ES) */}
+      <HousetConserje geminiApiKey={import.meta.env.VITE_GEMINI_API_KEY} />
     </div>
   );
 };
