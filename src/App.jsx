@@ -364,12 +364,12 @@ const App = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-[#050505] via-[#050505]/80 to-transparent z-10 pointer-events-none"></div>
           
           {/* --- GALERÍA DE IMÁGENES DECALADAS (OFFSET) A LA DERECHA --- */}
-          <div className="absolute right-[5%] top-[50%] -translate-y-1/2 w-[800px] h-[600px] z-20 hidden lg:block pointer-events-none">
+          <div className="absolute right-[5%] top-[50%] -translate-y-1/2 w-[800px] h-[600px] z-20 hidden md:block pointer-events-none opacity-40 lg:opacity-100">
             
             {/* IMAGEN 2: Estática (hero-bg.png) - Decalada hacia atrás y rotada */}
             <div className="absolute right-10 top-20 w-[350px] h-[450px]">
               <img 
-                src="hero-bg.png" 
+                src={import.meta.env.BASE_URL + "hero-bg.png"} 
                 alt="Premium Architecture" 
                 className="w-full h-full object-cover rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.8)] border border-white/5 transform rotate-6 hover:rotate-0 transition-transform duration-700" 
               />
@@ -443,8 +443,7 @@ const App = () => {
       <section id="modelo" className="py-32 relative bg-[#050505]">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="text-center mb-20">
-            <h2 className="text-3xl md:text-5xl font-display font-medium mb-4">Nuestro Modelo Exclusivo</h2>
-            <p className="text-white/50 max-w-2xl mx-auto font-light">Comodidad, legalidad y el más alto nivel de artesanía sin que tengas que levantar un dedo.</p>
+            <h2 className="text-3xl md:text-5xl font-display font-medium mb-4">{t.services.title}</h2>
           </div>
           
           <motion.div 
@@ -455,9 +454,9 @@ const App = () => {
             className="grid grid-cols-1 md:grid-cols-3 gap-8"
           >
             {[
-              { icon: <ShoppingBag size={24} />, title: "1. Materiales Premium", desc: "A través de nuestra tienda online, adquieres mobiliario, pinturas y materiales de las mejores tiendas de Luxemburgo (vía afiliación)." },
-              { icon: <PenTool size={24} />, title: "2. Asesoría de Diseño", desc: "Te guiamos en la elección de estilos, colores y distribución espacial para asegurar un resultado estético y funcional." },
-              { icon: <CheckCircle size={24} />, title: "3. Ejecución Delegada", desc: "Nosotros nos encargamos de contratar y coordinar a artesanos locales certificados para que realicen la obra física de manera impecable." }
+              { icon: <ShoppingBag size={24} />, title: `1. ${t.services.cards[0].title}`, desc: t.services.cards[0].desc },
+              { icon: <PenTool size={24} />, title: `2. ${t.services.cards[1].title}`, desc: t.services.cards[1].desc },
+              { icon: <CheckCircle size={24} />, title: `3. ${t.services.cards[2].title}`, desc: t.services.cards[2].desc }
             ].map((feature, idx) => (
               <motion.div key={idx} variants={fadeUp} className="glass-panel p-10 rounded-2xl group hover:border-[#D4AF37]/30 transition-colors duration-500 relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-6 text-[100px] font-display font-bold text-white/[0.02] leading-none pointer-events-none transition-all group-hover:text-white/[0.05]">
@@ -474,14 +473,16 @@ const App = () => {
         </div>
       </section>
 
-      {/* Boutique / Dropshipping Dynamic Catalog Section */}
-      <section id="boutique" className="py-32 relative border-t border-white/5">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-display font-medium mb-6">Boutique <span className="text-gradient-gold">Curation</span></h2>
-            <p className="text-white/60 max-w-2xl mx-auto font-light">
-              Mobiliario de diseño y herrajes premium europeos. Sincronizado en tiempo real vía API con Artisan Furniture EU, Emuca y BigBuy.
-            </p>
+      {/* Boutique Catalog Section */}
+      <section id="boutique" className="py-32 relative">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+            <div>
+              <h2 className="text-3xl md:text-5xl font-display font-medium mb-4">{t.catalog.title}</h2>
+            </div>
+            <a href="#" className="text-[#D4AF37] flex items-center gap-2 hover:gap-4 transition-all font-medium uppercase tracking-widest text-xs">
+              Ver Colección Completa <ChevronRight size={16} />
+            </a>
           </div>
           
           <BoutiqueCatalog onAddToCart={handleAddToCart} />
@@ -590,23 +591,18 @@ const App = () => {
 
       {/* Artisan Portal Modal */}
       {isArtisanModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setArtisanModalOpen(false)}></div>
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="glass-panel w-full max-w-lg p-8 rounded-2xl relative border-[#D4AF37]/30"
+            className="bg-[#111] border border-white/10 p-8 md:p-12 rounded-3xl max-w-xl w-full relative z-10"
           >
-            <button 
-              onClick={() => { setArtisanModalOpen(false); setArtisanFormStatus('idle'); }}
-              className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors"
-            >
+            <button onClick={() => setArtisanModalOpen(false)} className="absolute top-6 right-6 text-white/50 hover:text-white">
               <X size={24} />
             </button>
-            
-            <h2 className="text-3xl font-display font-medium mb-2">Únete a la Red</h2>
-            <p className="text-white/60 mb-8 font-light text-sm">
-              ¿Eres artesano, tienes una ferretería o negocio en Luxemburgo? Conéctate a nuestra API y recibe proyectos directamente de nuestros clientes.
-            </p>
+            <h3 className="text-2xl font-display font-medium mb-2">{t.artisanModal.title}</h3>
+            <p className="text-white/60 mb-8">{t.artisanModal.desc}</p>
 
             {artisanFormStatus === 'success' ? (
               <div className="flex flex-col items-center gap-4 py-8 text-center">
@@ -650,14 +646,10 @@ const App = () => {
                   required 
                   className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-[#D4AF37]"
                 />
-                <button 
-                  type="submit" 
-                  disabled={artisanFormStatus === 'submitting'}
-                  className="bg-[#D4AF37] text-black px-8 py-4 mt-4 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-[#b5952f] transition-all disabled:opacity-50"
-                >
-                  {artisanFormStatus === 'submitting' ? 'Enviando...' : 'Solicitar Acceso API'}
-                  <Send size={18} />
-                </button>
+                <button type="submit" disabled={artisanFormStatus === 'submitting'} className="w-full bg-[#D4AF37] text-black font-medium py-4 rounded-xl flex justify-center items-center gap-2 hover:bg-white transition-colors disabled:opacity-50">
+                {artisanFormStatus === 'submitting' ? 'Enviando...' : t.artisanModal.btnSubmit}
+                <ArrowUpRight size={16} />
+              </button>
               </form>
             )}
           </motion.div>
@@ -709,7 +701,7 @@ const App = () => {
 
             <div className="p-6 border-t border-white/10 bg-black/50">
               <div className="flex justify-between items-center mb-6">
-                <span className="text-white/60">Total Estimado</span>
+                <span className="text-white/60">{t.catalog.cartTotal}</span>
                 <span className="text-2xl font-display font-medium text-[#D4AF37]">€{cartTotal}</span>
               </div>
               <button 
@@ -717,7 +709,7 @@ const App = () => {
                 disabled={cartItems.length === 0 || isCheckingOut}
                 className="w-full bg-[#D4AF37] text-black font-medium py-4 rounded-xl flex justify-center items-center gap-2 hover:bg-white transition-colors disabled:opacity-50 disabled:hover:bg-[#D4AF37]"
               >
-                {isCheckingOut ? 'Conectando seguro...' : 'Continuar a Checkout (Stripe)'}
+                {isCheckingOut ? 'Conectando...' : t.catalog.checkout}
                 {!isCheckingOut && <ArrowUpRight size={16} />}
               </button>
             </div>
