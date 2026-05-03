@@ -55,8 +55,7 @@ const BoutiqueCatalog = ({ onAddToCart, t, lang }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Attempt to fetch from our live backend
+    // 🌐 Sincronización con el "Total Suite" Backend en tiempo real
     fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/catalog`)
       .then(res => res.json())
       .then(data => {
@@ -64,12 +63,10 @@ const BoutiqueCatalog = ({ onAddToCart, t, lang }) => {
         setLoading(false);
       })
       .catch(err => {
-        console.log("Backend no disponible, usando fallback de la caché de Artisan/BigBuy");
+        console.warn("Backend local no detectado, usando caché de seguridad.");
         setProducts([
-          { id: 1, idx: 0, price: 450, isCertifiedArtisan: true, image: "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?q=80&w=600&auto=format&fit=crop" },
-          { id: 2, idx: 1, price: 290, isCertifiedArtisan: false, image: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=600&auto=format&fit=crop" },
-          { id: 3, idx: 2, price: 120, isCertifiedArtisan: false, image: "https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?q=80&w=600&auto=format&fit=crop" },
-          { id: 4, idx: 3, price: 340, isCertifiedArtisan: true, image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600&auto=format&fit=crop" }
+          { id: '1', name: "Fauteuil Velvet Lounge", price: 450, provider: "Artisan Furniture EU", isCertifiedArtisan: true, image: "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?q=80&w=600&auto=format&fit=crop" },
+          { id: '2', name: "Table Basse Chêne Industriel", price: 290, provider: "Creameng / BigBuy", isCertifiedArtisan: false, image: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=600&auto=format&fit=crop" }
         ]);
         setLoading(false);
       });
@@ -562,10 +559,13 @@ const App = () => {
             className="max-w-md mx-auto"
           >
             {formStatus === 'success' ? (
-              <div className="glass-panel p-8 rounded-2xl flex flex-col items-center gap-4 border-[#25D366]/30">
-                <CheckCircle2 size={48} className="text-[#25D366]" />
-                <h3 className="text-xl font-display text-white">¡Solicitud recibida!</h3>
-                <p className="text-white/60">Te contactaremos para organizar la asesoría y las compras necesarias.</p>
+              <div className="glass-panel p-8 rounded-2xl flex flex-col items-center gap-4 border-[#D4AF37]/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle2 size={32} className="text-[#D4AF37]" />
+                  <span className="bg-[#D4AF37]/10 text-[#D4AF37] px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase">Lead Premium Detectado por IA</span>
+                </div>
+                <h3 className="text-xl font-display text-white">¡Solicitud recibida, Comandante!</h3>
+                <p className="text-white/60 text-sm">Nuestro sistema ha priorizado su solicitud. Un asesor experto se pondrá en contacto con usted en breve.</p>
               </div>
             ) : (
               <form onSubmit={handleContactSubmit} className="flex flex-col gap-4 mb-8 text-left">
