@@ -5,6 +5,10 @@ import { Environment, Float, PresentationControls, ContactShadows, useTexture } 
 import * as THREE from 'three';
 import { ChevronRight, Menu, X, ArrowUpRight, ShoppingBag, PenTool, CheckCircle, Send, CheckCircle2, ShoppingCart, Award, Trash2 } from 'lucide-react';
 import HousetConserje from './HousetConserje.jsx';
+import { loadStripe } from '@stripe/stripe-js';
+
+// Initialize Stripe (public key)
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || 'pk_test_dummy');
 
 const Image3DCard = () => {
   const groupRef = useRef();
@@ -154,6 +158,36 @@ const App = () => {
   const [artisanFormStatus, setArtisanFormStatus] = useState('idle');
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setCartOpen] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+
+  const handleCheckout = async () => {
+    if (cartItems.length === 0) return;
+    setIsCheckingOut(true);
+
+    try {
+      const response = await fetch('http://localhost:3000/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: cartItems,
+          originUrl: window.location.origin + window.location.pathname
+        })
+      });
+
+      const { id, url, error } = await response.json();
+      
+      if (error) throw new Error(error);
+
+      // Stripe redirect
+      const stripe = await stripePromise;
+      await stripe.redirectToCheckout({ sessionId: id });
+      
+    } catch (err) {
+      console.error("Error al iniciar checkout:", err);
+      alert("No se pudo iniciar el pago. Intente más tarde.");
+      setIsCheckingOut(false);
+    }
+  };
 
   const handleAddToCart = (product) => {
     setCartItems(prev => [...prev, product]);
@@ -663,11 +697,12 @@ const App = () => {
                 <span className="text-2xl font-display font-medium text-[#D4AF37]">€{cartTotal}</span>
               </div>
               <button 
-                disabled={cartItems.length === 0}
+                onClick={handleCheckout}
+                disabled={cartItems.length === 0 || isCheckingOut}
                 className="w-full bg-[#D4AF37] text-black font-medium py-4 rounded-xl flex justify-center items-center gap-2 hover:bg-white transition-colors disabled:opacity-50 disabled:hover:bg-[#D4AF37]"
               >
-                Continuar a Checkout
-                <ArrowUpRight size={16} />
+                {isCheckingOut ? 'Conectando seguro...' : 'Continuar a Checkout (Stripe)'}
+                {!isCheckingOut && <ArrowUpRight size={16} />}
               </button>
             </div>
           </motion.div>

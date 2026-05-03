@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
+import Stripe from 'stripe';
 
 dotenv.config();
 
@@ -20,8 +21,13 @@ const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
 
+const stripe = process.env.STRIPE_SECRET_KEY
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' })
+  : null;
+
 if (!supabase) console.warn('[⚠️  HOUSET] Supabase not configured — running in mock mode. Add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to .env');
 if (!resend)   console.warn('[⚠️  HOUSET] Resend not configured — emails disabled. Add RESEND_API_KEY to .env');
+if (!stripe)   console.warn('[⚠️  HOUSET] Stripe not configured — payments disabled. Add STRIPE_SECRET_KEY to .env');
 
 // --- 🛡️ SECURITY MIDDLEWARE ---
 app.use(helmet());
@@ -196,6 +202,45 @@ app.post('/api/webhooks/artisan', async (req, res) => {
   res.status(200).json({ received: true });
 });
 
+// --- 💳 STRIPE CHECKOUT ---
+app.post('/api/create-checkout-session', async (req, res) => {
+  if (!stripe) {
+    return res.status(500).json({ error: 'Stripe no está configurado en el servidor.' });
+  }
+
+  try {
+    const { items, originUrl } = req.body; // items: [{ name, price, quantity }]
+    
+    if (!items || items.length === 0) {
+      return res.status(400).json({ error: 'El carrito está vacío.' });
+    }
+
+    const lineItems = items.map(item => ({
+      price_data: {
+        currency: 'eur',
+        product_data: {
+          name: item.name,
+        },
+        unit_amount: Math.round(item.price * 100), // Stripe usa centavos
+      },
+      quantity: item.quantity || 1,
+    }));
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: lineItems,
+      mode: 'payment',
+      success_url: `${originUrl}?success=true`,
+      cancel_url: `${originUrl}?canceled=true`,
+    });
+
+    res.json({ id: session.id, url: session.url });
+  } catch (error) {
+    console.error('[STRIPE ERROR]', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // --- 🌐 START ---
 app.listen(PORT, () => {
   console.log(`
@@ -205,6 +250,7 @@ app.listen(PORT, () => {
   ║   🛡️  Helmet + Rate Limit + CORS             ║
   ║   🗄️  Supabase: ${supabase ? '✅ Connected' : '⚠️  Mock mode'}              ║
   ║   📬 Resend:    ${resend   ? '✅ Connected' : '⚠️  Disabled  '}              ║
+  ║   💳 Stripe:    ${stripe   ? '✅ Connected' : '⚠️  Disabled  '}              ║
   ╚══════════════════════════════════════════════╝
   `);
 });
