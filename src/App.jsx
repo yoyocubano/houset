@@ -5,29 +5,28 @@ import { Environment, Float, PresentationControls, ContactShadows, useTexture } 
 import * as THREE from 'three';
 import { ChevronRight, Menu, X, ArrowUpRight, ShoppingBag, PenTool, CheckCircle, Send, CheckCircle2, ShoppingCart, Award, Trash2 } from 'lucide-react';
 import HousetConserje from './HousetConserje.jsx';
-import { loadStripe } from '@stripe/stripe-js';
-import { translations } from './translations.js';
-
-// Configuration
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || 'pk_test_dummy');
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { useHouset } from './context/HousetContext.jsx';
 
 const Image3DCard = () => {
   const groupRef = useRef();
+  const [isActive, setIsActive] = useState(true);
   
-  // Load the AI-generated texture
   const texture = useTexture(import.meta.env.BASE_URL + 'luxury_house_texture.png');
   texture.colorSpace = THREE.SRGBColorSpace;
 
-  // Entry animation logic (only move up, do not rotate continuously)
   useFrame((state, delta) => {
-    if (groupRef.current) {
-      // Gentle rise up effect
-      if (groupRef.current.position.y < 0) {
-        groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, 0, delta * 1.5);
+    if (groupRef.current && isActive) {
+      const currentY = groupRef.current.position.y;
+      const targetY = 0;
+      
+      // Solo calculamos si hay una diferencia notable (Eco-Mode)
+      if (Math.abs(currentY - targetY) > 0.01) {
+        groupRef.current.position.y = THREE.MathUtils.lerp(currentY, targetY, delta * 1.5);
+        groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, 0, delta * 2);
+      } else {
+        // Una vez en posición, pausamos actualizaciones pesadas
+        setIsActive(false);
       }
-      // Ensure it faces front perfectly
-      groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, 0, delta * 2);
     }
   });
 
@@ -35,28 +34,26 @@ const Image3DCard = () => {
     <group ref={groupRef} position={[0, -5, 0]}>
       {/* Floating 3D image card */}
       <mesh castShadow receiveShadow>
-        {/* We use a thin box to give the image card some 3D volume */}
         <boxGeometry args={[4.5, 5.5, 0.1]} />
-        {/* Material array: [right, left, top, bottom, front, back] */}
         <meshPhysicalMaterial attach="material-0" color="#D4AF37" metalness={0.8} roughness={0.2} />
         <meshPhysicalMaterial attach="material-1" color="#D4AF37" metalness={0.8} roughness={0.2} />
         <meshPhysicalMaterial attach="material-2" color="#D4AF37" metalness={0.8} roughness={0.2} />
         <meshPhysicalMaterial attach="material-3" color="#D4AF37" metalness={0.8} roughness={0.2} />
-        {/* Front face with the AI texture */}
         <meshPhysicalMaterial attach="material-4" map={texture} metalness={0.1} roughness={0.3} clearcoat={1} clearcoatRoughness={0.1} />
-        {/* Back face with a dark metallic look */}
         <meshPhysicalMaterial attach="material-5" color="#050505" metalness={0.9} roughness={0.1} />
       </mesh>
     </group>
   );
 };
 
-const BoutiqueCatalog = ({ onAddToCart, t, lang }) => {
+const BoutiqueCatalog = () => {
+  const { addToCart, t, API_URL } = useHouset();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
     // 🌐 Sincronización con el "Total Suite" Backend en tiempo real
-    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/catalog`)
+    fetch(`${API_URL}/api/catalog`)
       .then(res => res.json())
       .then(data => {
         setProducts(data);
@@ -65,8 +62,8 @@ const BoutiqueCatalog = ({ onAddToCart, t, lang }) => {
       .catch(err => {
         console.warn("Backend local no detectado, usando caché de seguridad.");
         setProducts([
-          { id: '1', name: "Fauteuil Velvet Lounge", price: 450, provider: "Artisan Furniture EU", isCertifiedArtisan: true, image: "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?q=80&w=600&auto=format&fit=crop" },
-          { id: '2', name: "Table Basse Chêne Industriel", price: 290, provider: "Creameng / BigBuy", isCertifiedArtisan: false, image: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=600&auto=format&fit=crop" }
+          { id: '1', name: "Fauteuil Velvet Lounge", price: 450, provider: "Artisan Furniture EU", isCertifiedArtisan: true, image: "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?q=80&w=600&auto=format&fit=crop", idx: 0 },
+          { id: '2', name: "Table Basse Chêne Industriel", price: 290, provider: "Creameng / BigBuy", isCertifiedArtisan: false, image: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=600&auto=format&fit=crop", idx: 1 }
         ]);
         setLoading(false);
       });
@@ -86,17 +83,17 @@ const BoutiqueCatalog = ({ onAddToCart, t, lang }) => {
           className="glass-panel rounded-2xl overflow-hidden group border-white/5 bg-white/[0.02]"
         >
           <div className="h-64 overflow-hidden relative">
-            <img src={item.image} alt={t.catalog.items[item.idx].name} className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" />
+            <img src={item.image} alt={t.catalog.items[item.idx]?.name} className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" />
             <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[10px] uppercase tracking-wider text-[#D4AF37] flex items-center gap-1.5">
               {item.isCertifiedArtisan && <Award size={12} className="text-[#D4AF37]" />}
-              {t.catalog.items[item.idx].provider}
+              {t.catalog.items[item.idx]?.provider}
             </div>
           </div>
           <div className="p-6">
-            <h3 className="text-lg font-outfit text-white mb-2 line-clamp-1">{t.catalog.items[item.idx].name}</h3>
+            <h3 className="text-lg font-outfit text-white mb-2 line-clamp-1">{t.catalog.items[item.idx]?.name}</h3>
             <p className="text-[#D4AF37] font-medium mb-6">€{item.price}</p>
             <button 
-              onClick={() => onAddToCart(item)}
+              onClick={() => addToCart(item)}
               className="w-full bg-white/5 hover:bg-white text-white hover:text-black border border-white/10 py-2.5 rounded-lg text-sm uppercase tracking-widest transition-all duration-300"
             >
               {t.catalog.addToCart}
@@ -150,63 +147,19 @@ const TiltCard = ({ children, className }) => {
 };
 
 const App = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
+  const { 
+    lang, setLang, t, 
+    cartItems, addToCart, removeFromCart, cartTotal,
+    isCartOpen, setCartOpen,
+    isCheckingOut, handleCheckout,
+    isScrolled,
+    API_URL 
+  } = useHouset();
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [formStatus, setFormStatus] = useState('idle');
   const [isArtisanModalOpen, setArtisanModalOpen] = useState(false);
   const [artisanFormStatus, setArtisanFormStatus] = useState('idle');
-  const [cartItems, setCartItems] = useState([]);
-  const [isCartOpen, setCartOpen] = useState(false);
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [lang, setLang] = useState('fr');
-  
-  const t = translations[lang] || translations['fr'];
-
-  const handleCheckout = async () => {
-    if (cartItems.length === 0) return;
-    setIsCheckingOut(true);
-
-    try {
-      const response = await fetch(`${API_URL}/api/create-checkout-session`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: cartItems,
-          originUrl: window.location.origin + window.location.pathname
-        })
-      });
-
-      const { id, url, error } = await response.json();
-      
-      if (error) throw new Error(error);
-
-      // Stripe redirect
-      const stripe = await stripePromise;
-      await stripe.redirectToCheckout({ sessionId: id });
-      
-    } catch (err) {
-      console.error("Error al iniciar checkout:", err);
-      alert("No se pudo iniciar el pago. Intente más tarde.");
-      setIsCheckingOut(false);
-    }
-  };
-
-  const handleAddToCart = (product) => {
-    setCartItems(prev => [...prev, product]);
-    setCartOpen(true);
-  };
-
-  const removeFromCart = (index) => {
-    setCartItems(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const cartTotal = cartItems.reduce((sum, item) => sum + item.price, 0);
-
-  useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const fadeUp = {
     hidden: { opacity: 0, y: 30 },
@@ -478,6 +431,36 @@ const App = () => {
         </div>
       </section>
 
+      {/* Qween Free Benefits Section */}
+      <section className="py-12 bg-[#050505] border-y border-white/5">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8 glass-panel p-8 rounded-3xl border-[#D4AF37]/20 bg-[#D4AF37]/5">
+            <div className="flex items-center gap-6">
+              <div className="w-16 h-16 rounded-2xl bg-[#D4AF37] flex items-center justify-center text-3xl shadow-[0_0_30px_rgba(212,175,55,0.3)]">
+                👑
+              </div>
+              <div>
+                <h3 className="text-xl font-display font-bold text-white uppercase tracking-tighter">{t.qween.title}</h3>
+                <p className="text-[#D4AF37]/80 text-sm font-medium">{t.qween.subtitle}</p>
+              </div>
+            </div>
+            
+            <div className="flex flex-wrap gap-4 justify-center">
+              {useHouset().qweenOffers.map((offer, idx) => (
+                <button 
+                  key={offer.id}
+                  onClick={() => useHouset().claimQweenOffer(offer.id)}
+                  className="bg-white/10 hover:bg-white hover:text-black px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-500 border border-white/10 flex items-center gap-2"
+                >
+                  <span>{offer.icon}</span>
+                  {idx === 0 ? t.qween.btn1 : t.qween.btn2}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Model Section (How it works) */}
       <section id="modelo" className="py-32 relative bg-[#050505]">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
@@ -524,7 +507,7 @@ const App = () => {
             </a>
           </div>
           
-          <BoutiqueCatalog onAddToCart={handleAddToCart} t={t} lang={lang} />
+          <BoutiqueCatalog />
         </div>
       </section>
 

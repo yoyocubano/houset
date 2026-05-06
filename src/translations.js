@@ -54,6 +54,12 @@ export const translations = {
     footer: {
       copyright: "HomeSetup Luxembourg. Consultoría y Boutique Online.",
       portal: "Portal para Artesanos & B2B"
+    },
+    qween: {
+      title: "Experiencia Qween",
+      subtitle: "Beneficios Gratuitos & Posiciones Premium",
+      btn1: "Análisis Interior IA",
+      btn2: "Consultoría Lux Style"
     }
   },
   fr: {
@@ -111,6 +117,12 @@ export const translations = {
     footer: {
       copyright: "HomeSetup Luxembourg. Conseil & Boutique en ligne.",
       portal: "Portail Artisans & B2B"
+    },
+    qween: {
+      title: "Expérience Qween",
+      subtitle: "Avantages Gratuits & Positions Premium",
+      btn1: "Analyse Intérieur IA",
+      btn2: "Consultation Lux Style"
     }
   },
   en: {
@@ -168,6 +180,12 @@ export const translations = {
     footer: {
       copyright: "HomeSetup Luxembourg. Consulting & Online Boutique.",
       portal: "Artisan & B2B Portal"
+    },
+    qween: {
+      title: "Qween Experience",
+      subtitle: "Free Benefits & Premium Positions",
+      btn1: "AI Interior Analysis",
+      btn2: "Lux Style Consulting"
     }
   },
   lu: {
@@ -225,6 +243,12 @@ export const translations = {
     footer: {
       copyright: "HomeSetup Luxembourg. Berodung & Online Boutique.",
       portal: "Handwierker & B2B Portal"
+    },
+    qween: {
+      title: "Qween Experienz",
+      subtitle: "Gratis Virdeeler & Premium Positiounen",
+      btn1: "IA Interieur Analys",
+      btn2: "Lux Style Berodung"
     }
   }
 };

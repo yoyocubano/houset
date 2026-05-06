@@ -86,9 +86,23 @@ app.post('/api/contact', async (req, res) => {
   }
 
   try {
-    // 1. AI Scoring Placeholder (Gemma 2)
-    // Aquí es donde inyectamos a Gemma para analizar el "potencial de lujo"
-    const luxuryScore = message?.toLowerCase().includes('luxembourg') || message?.toLowerCase().includes('premium') ? 95 : 50;
+    // 1. AI Scoring Engine (Intelligent Placeholder for Luxury Analysis)
+    const luxuryKeywords = ['luxembourg', 'premium', 'invest', 'luxury', 'architecture', 'high-end', 'exclusive', 'palace', 'castle'];
+    const lowerMessage = message?.toLowerCase() || '';
+    
+    let luxuryScore = 50; // Base score
+    
+    // Weighted scoring based on intent
+    luxuryKeywords.forEach(word => {
+      if (lowerMessage.includes(word)) luxuryScore += 10;
+    });
+    
+    // Specific high-value boosts
+    if (lowerMessage.includes('luxembourg') || email.endsWith('.lu')) luxuryScore += 20;
+    if (lowerMessage.includes('invest') || lowerMessage.includes('portfolio')) luxuryScore += 15;
+    
+    // Clamp at 100
+    luxuryScore = Math.min(luxuryScore, 100);
 
     // 2. Persist to Firestore
     const leadRef = await db.collection('leads').add({
@@ -97,6 +111,7 @@ app.post('/api/contact', async (req, res) => {
       service,
       message,
       luxuryScore,
+      status: luxuryScore > 80 ? 'PREMIUM_HOT' : 'NEW',
       source: 'houset-web',
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
