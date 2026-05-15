@@ -12,7 +12,7 @@
 
   # Sets environment variables in the workspace
   env = {
-    VITE_API_URL = "https://backend-XXXXXXXX.run.app"; # To be updated after deploy
+    VITE_API_URL = "https://houset-backend-157137383214.europe-west1.run.app";
   };
 
   idx = {
