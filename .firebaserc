@@ -1,5 +1,4 @@
 {
-  "projects": {
-    "default": "houset-luxembourg-official"
-  }
+  "projects": { "default": "houset-luxembourg-official" },
+  "targets": { "houset-luxembourg-official": { "hosting": { "houset-luxembourg-official": ["houset-luxembourg-official"] } } }
 }
